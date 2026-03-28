@@ -187,34 +187,48 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildWideLayout() {
     return Scaffold(
-      body: Center(
-        child: Card(
-          elevation: 8,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: SizedBox(
-            width: 320,
-            height: 400,
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    '扫码登录',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      body: Stack(
+        children: [
+          Center(
+            child: Card(
+              elevation: 8,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: SizedBox(
+                width: 320,
+                height: 400,
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        '扫码登录',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        '请使用哔哩哔哩 App 扫码',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      const SizedBox(height: 24),
+                      _buildQrContent(),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    '请使用哔哩哔哩 App 扫码',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  const SizedBox(height: 24),
-                  _buildQrContent(),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+          // 添加关闭按钮
+          Positioned(
+            top: 16,
+            right: 16,
+            child: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
+              tooltip: '关闭',
+            ),
+          ),
+        ],
       ),
     );
   }

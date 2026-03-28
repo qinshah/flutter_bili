@@ -64,7 +64,7 @@ class AuthInterceptor extends Interceptor {
 
   void _clearAndRedirect() {
     AppStorage.credentials.delete('main');
-    navigatorKey.currentState
-        ?.pushNamedAndRemoveUntil('/login', (route) => false);
+    // 不自动跳转登录页，让用户手动点击登录按钮
+    // 这样避免强制跳转且无法关闭的问题
   }
 }
