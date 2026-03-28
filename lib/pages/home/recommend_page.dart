@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bili/http/loading_state.dart';
-import 'package:flutter_bili/http/recommend_http.dart';
-import 'package:flutter_bili/models/video/rec_video_item.dart';
+import 'package:provider/provider.dart';
+import '../../services/recommend_service.dart';
+import '../../models/video/rec_video_item.dart';
 
 class RecommendPage extends StatefulWidget {
   const RecommendPage({super.key});
@@ -10,72 +10,21 @@ class RecommendPage extends StatefulWidget {
   State<RecommendPage> createState() => _RecommendPageState();
 }
 
-class _RecommendPageState extends State<RecommendPage> {
-  final List<RecVideoItem> _videoList = [];
-  bool _loading = false;
-  String? _error;
-  int _freshIdx = 0;
-  final ScrollController _scrollController = ScrollController();
+class _RecommendPageState extends State<RecommendPage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
-    _loadVideos();
-    _scrollController.addListener(_onScroll);
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      if (!_loading) {
-        _loadMore();
+    // 首次加载数据
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final service = context.read<RecommendService>();
+      if (!service.hasData && !service.loading) {
+        service.loadVideos();
       }
-    }
-  }
-
-  Future<void> _loadVideos() async {
-    if (_loading) return;
-
-    setState(() {
-      _loading = true;
-      _error = null;
     });
-
-    final result = await RecommendHttp.getRecommendList(freshIdx: _freshIdx);
-
-    if (!mounted) return;
-
-    switch (result) {
-      case Success(:final response):
-        setState(() {
-          _videoList.addAll(response);
-          _freshIdx++;
-          _loading = false;
-        });
-      case Error(:final message):
-        setState(() {
-          _error = message;
-          _loading = false;
-        });
-    }
-  }
-
-  Future<void> _loadMore() async {
-    await _loadVideos();
-  }
-
-  Future<void> _onRefresh() async {
-    setState(() {
-      _videoList.clear();
-      _freshIdx = 0;
-    });
-    await _loadVideos();
   }
 
   String _formatDuration(int seconds) {
@@ -94,59 +43,69 @@ class _RecommendPageState extends State<RecommendPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_videoList.isEmpty && _loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    super.build(context); // 必须调用以保持状态
+    
+    return Consumer<RecommendService>(
+      builder: (context, service, _) {
+        // 初始加载中
+        if (!service.hasData && service.loading) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    if (_videoList.isEmpty && _error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(_error!, style: const TextStyle(color: Colors.red)),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _onRefresh,
-              child: const Text('重试'),
+        // 加载失败
+        if (!service.hasData && service.error != null) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(service.error!, style: const TextStyle(color: Colors.red)),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => service.refresh(),
+                  child: const Text('重试'),
+                ),
+              ],
             ),
-          ],
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _onRefresh,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 800;
-          final crossAxisCount = isWide ? 4 : 2;
-
-          return GridView.builder(
-            controller: _scrollController,
-            padding: const EdgeInsets.all(8),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              childAspectRatio: 0.7,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-            ),
-            itemCount: _videoList.length + (_loading ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index >= _videoList.length) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
-
-              final video = _videoList[index];
-              return _buildVideoCard(video);
-            },
           );
-        },
-      ),
+        }
+
+        // 显示视频列表
+        return RefreshIndicator(
+          onRefresh: () => service.refresh(),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 800;
+              final crossAxisCount = isWide ? 4 : 2;
+
+              return GridView.builder(
+                key: service.gridKey,
+                controller: service.scrollController,
+                padding: const EdgeInsets.all(8),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  childAspectRatio: 0.7,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
+                itemCount: service.videoList.length + (service.loading ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index >= service.videoList.length) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+
+                  final video = service.videoList[index];
+                  return _buildVideoCard(video);
+                },
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -194,7 +153,7 @@ class _RecommendPageState extends State<RecommendPage> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.7),
+                          color: Colors.black.withValues(alpha: 0.7),
                           borderRadius: BorderRadius.circular(2),
                         ),
                         child: Text(

@@ -11,6 +11,7 @@ import 'pages/home/home_scaffold.dart';
 import 'pages/login/login_page.dart';
 import 'pages/video/video_detail_page.dart';
 import 'services/auth_service.dart';
+import 'services/recommend_service.dart';
 import 'services/video_service.dart';
 
 Future<void> main() async {
@@ -27,12 +28,14 @@ Future<void> main() async {
   authService.loadFromStorage();
 
   final videoService = VideoService();
+  final recommendService = RecommendService();
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthService>.value(value: authService),
         ChangeNotifierProvider<VideoService>.value(value: videoService),
+        ChangeNotifierProvider<RecommendService>.value(value: recommendService),
       ],
       child: const BiliApp(),
     ),

@@ -45,7 +45,11 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   @override
   void initState() {
     super.initState();
-    _player = Player();
+    _player = Player(
+      configuration: const PlayerConfiguration(
+        bufferSize: 32 * 1024 * 1024, // 32MB buffer
+      ),
+    );
     _controller = VideoController(_player);
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadDetail());
   }
@@ -74,11 +78,49 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
 
   Future<void> _loadMedia(PlayUrlModel? playUrl) async {
     if (playUrl == null) return;
+    
     final videoUrl = playUrl.dash?.video?.first.baseUrl;
+    final audioUrl = playUrl.dash?.audio?.first.baseUrl;
+    
     if (videoUrl == null || videoUrl.isEmpty) return;
 
-    await _player.open(Media(videoUrl));
-    _startHeartbeat();
+    // B站的DASH视频需要分别加载视频和音频流
+    final headers = {
+      'referer': 'https://www.bilibili.com',
+      'user-agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+    };
+
+    try {
+      // 获取NativePlayer实例并设置音频
+      if (audioUrl != null && audioUrl.isNotEmpty) {
+        final nativePlayer = _player.platform as NativePlayer?;
+        if (nativePlayer != null) {
+          // 等待播放器初始化
+          await nativePlayer.waitForPlayerInitialization;
+          
+          // 设置音频轨道（参考PiliPlus）
+          await _player.setAudioTrack(AudioTrack.auto());
+          
+          // 处理URL中的特殊字符
+          final processedAudioUrl = audioUrl.replaceAll(':', '\\:');
+          
+          // 设置音频文件
+          await nativePlayer.setProperty('audio-files', processedAudioUrl);
+          debugPrint('音频URL已设置: $processedAudioUrl');
+        }
+      }
+
+      // 加载视频（带请求头）
+      await _player.open(
+        Media(videoUrl, httpHeaders: headers),
+        play: true,
+      );
+      
+      _startHeartbeat();
+    } catch (e) {
+      debugPrint('加载媒体失败: $e');
+    }
   }
 
   // ── Heartbeat ───────────────────────────────────────────────────────────────
