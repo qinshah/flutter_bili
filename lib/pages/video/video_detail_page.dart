@@ -1,0 +1,602 @@
+import 'dart:async';
+
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
+import 'package:provider/provider.dart';
+
+import '../../http/loading_state.dart';
+import '../../http/video_http.dart';
+import '../../models/video/play_url_model.dart';
+import '../../models/video/video_detail.dart';
+import '../../services/video_service.dart';
+
+// ─── Error code mapping ───────────────────────────────────────────────────────
+
+String mapErrorCode(int? code, String? message) {
+  switch (code) {
+    case -404:
+      return '视频不存在或已被删除';
+    case 87008:
+      return '该视频为专属视频，可能需要充电观看';
+    default:
+      return message ?? '加载失败';
+  }
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+class VideoDetailPage extends StatefulWidget {
+  const VideoDetailPage({super.key, required this.bvid});
+
+  final String bvid;
+
+  @override
+  State<VideoDetailPage> createState() => _VideoDetailPageState();
+}
+
+class _VideoDetailPageState extends State<VideoDetailPage> {
+  late final Player _player;
+  late final VideoController _controller;
+  Timer? _heartbeatTimer;
+  int _currentCid = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _player = Player();
+    _controller = VideoController(_player);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadDetail());
+  }
+
+  @override
+  void dispose() {
+    _heartbeatTimer?.cancel();
+    _player.dispose();
+    super.dispose();
+  }
+
+  // ── Data loading ────────────────────────────────────────────────────────────
+
+  Future<void> _loadDetail() async {
+    final service = context.read<VideoService>();
+    await service.loadDetail(widget.bvid);
+    if (!mounted) return;
+    final detail = service.detail;
+    if (detail != null && detail.pages.isNotEmpty) {
+      _currentCid = detail.pages[0].cid;
+      await service.loadPlayUrl(widget.bvid, _currentCid);
+      if (!mounted) return;
+      _loadMedia(service.playUrl);
+    }
+  }
+
+  Future<void> _loadMedia(PlayUrlModel? playUrl) async {
+    if (playUrl == null) return;
+    final videoUrl = playUrl.dash?.video?.first.baseUrl;
+    if (videoUrl == null || videoUrl.isEmpty) return;
+
+    await _player.open(Media(videoUrl));
+    _startHeartbeat();
+  }
+
+  // ── Heartbeat ───────────────────────────────────────────────────────────────
+
+  void _startHeartbeat() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      VideoHttp.heartBeat(
+        bvid: widget.bvid,
+        cid: _currentCid,
+        progress: _player.state.position.inSeconds,
+      );
+    });
+  }
+
+  // ── Page switching ──────────────────────────────────────────────────────────
+
+  void _switchPage(int index) {
+    final service = context.read<VideoService>();
+    final detail = service.detail;
+    if (detail == null || index < 0 || index >= detail.pages.length) return;
+    _currentCid = detail.pages[index].cid;
+    service.selectPage(index);
+    // Wait for playUrl to update then reload media
+    Future.microtask(() async {
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (!mounted) return;
+      _loadMedia(context.read<VideoService>().playUrl);
+    });
+  }
+
+  // ── Quality switching ───────────────────────────────────────────────────────
+
+  void _showQualityPicker(PlayUrlModel playUrl) {
+    final service = context.read<VideoService>();
+    final qualities = playUrl.acceptQuality ?? [];
+    if (qualities.isEmpty) return;
+
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) => ListView(
+        shrinkWrap: true,
+        children: qualities.map((qn) {
+          final label = _qualityLabel(qn);
+          return ListTile(
+            title: Text(label),
+            onTap: () async {
+              Navigator.pop(ctx);
+              await service.loadPlayUrl(widget.bvid, _currentCid, qn: qn);
+              if (!mounted) return;
+              _loadMedia(service.playUrl);
+            },
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  String _qualityLabel(int qn) {
+    const map = {
+      116: '1080P60',
+      80: '1080P',
+      64: '720P',
+      32: '480P',
+      16: '360P',
+    };
+    return map[qn] ?? qn.toString();
+  }
+
+  // ── Widgets ─────────────────────────────────────────────────────────────────
+
+  Widget _buildPlayer(PlayUrlModel? playUrl) {
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: Stack(
+        children: [
+          Video(controller: _controller),
+          // Controls overlay
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: _PlayerControls(
+              player: _player,
+              playUrl: playUrl,
+              onQualityTap: playUrl != null ? () => _showQualityPicker(playUrl) : null,
+              onFullscreen: () => _pushFullscreen(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _pushFullscreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => _FullscreenPlayer(controller: _controller, player: _player),
+      ),
+    );
+  }
+
+  Widget _buildOwnerRow(VideoDetailData detail) {
+    return Row(
+      children: [
+        ClipOval(
+          child: CachedNetworkImage(
+            imageUrl: detail.owner.face,
+            width: 36,
+            height: 36,
+            fit: BoxFit.cover,
+            errorWidget: (_, __, ___) => const Icon(Icons.person, size: 36),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            detail.owner.name,
+            style: const TextStyle(fontWeight: FontWeight.w500),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatRow(StatInfo stat) {
+    return Row(
+      children: [
+        const Icon(Icons.play_arrow, size: 16, color: Colors.grey),
+        const SizedBox(width: 4),
+        Text(_formatCount(stat.view), style: const TextStyle(color: Colors.grey, fontSize: 13)),
+        const SizedBox(width: 16),
+        const Icon(Icons.thumb_up_outlined, size: 16, color: Colors.grey),
+        const SizedBox(width: 4),
+        Text(_formatCount(stat.like), style: const TextStyle(color: Colors.grey, fontSize: 13)),
+      ],
+    );
+  }
+
+  String _formatCount(int n) {
+    if (n >= 10000) return '${(n / 10000).toStringAsFixed(1)}万';
+    return n.toString();
+  }
+
+  Widget _buildVideoInfo(VideoDetailData detail) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            detail.title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 8),
+          _buildStatRow(detail.stat),
+          const SizedBox(height: 12),
+          _buildOwnerRow(detail),
+          if (detail.desc.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              detail.desc,
+              style: const TextStyle(fontSize: 13, color: Colors.black87),
+              maxLines: 5,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+          if (detail.pages.length > 1) ...[
+            const SizedBox(height: 12),
+            _buildPagesList(detail),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPagesList(VideoDetailData detail) {
+    final service = context.watch<VideoService>();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('选集', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 40,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: detail.pages.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (_, i) {
+              final selected = service.selectedPage == i;
+              return GestureDetector(
+                onTap: () => _switchPage(i),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: selected ? Theme.of(context).colorScheme.primary : Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'P${detail.pages[i].page}',
+                    style: TextStyle(
+                      color: selected ? Colors.white : Colors.black87,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorState(String message, {required VoidCallback onRetry}) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const SizedBox(height: 12),
+            Text(message, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh),
+              label: const Text('重试'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Build ────────────────────────────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('视频详情')),
+      body: Consumer<VideoService>(
+        builder: (context, service, _) {
+          // Detail loading state
+          if (service.detailState == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (service.detailState is Error) {
+            final err = service.detailState as Error;
+            // Try to parse error code from message
+            final msg = mapErrorCode(null, err.message);
+            return _buildErrorState(msg, onRetry: _loadDetail);
+          }
+
+          final detail = service.detail!;
+          final playUrl = service.playUrl;
+
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 800;
+              if (isWide) {
+                return _buildWideLayout(detail, playUrl, service);
+              } else {
+                return _buildNarrowLayout(detail, playUrl, service);
+              }
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildNarrowLayout(VideoDetailData detail, PlayUrlModel? playUrl, VideoService service) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildPlayer(playUrl),
+          _buildPlayUrlError(service),
+          _buildVideoInfo(detail),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWideLayout(VideoDetailData detail, PlayUrlModel? playUrl, VideoService service) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Left: player + info
+        Expanded(
+          flex: 3,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildPlayer(playUrl),
+                _buildPlayUrlError(service),
+                _buildVideoInfo(detail),
+              ],
+            ),
+          ),
+        ),
+        // Right: recommendations placeholder
+        Expanded(
+          flex: 1,
+          child: Container(
+            color: Colors.grey.shade100,
+            child: const Center(
+              child: Text('推荐视频', style: TextStyle(color: Colors.grey)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPlayUrlError(VideoService service) {
+    if (service.playUrlState is Error) {
+      final err = service.playUrlState as Error;
+      final msg = mapErrorCode(null, err.message);
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            const Icon(Icons.warning_amber, color: Colors.orange, size: 18),
+            const SizedBox(width: 6),
+            Expanded(child: Text(msg, style: const TextStyle(color: Colors.orange, fontSize: 13))),
+            TextButton(
+              onPressed: () {
+                final detail = service.detail;
+                if (detail != null) {
+                  service.loadPlayUrl(widget.bvid, _currentCid);
+                }
+              },
+              child: const Text('重试'),
+            ),
+          ],
+        ),
+      );
+    }
+    return const SizedBox.shrink();
+  }
+}
+
+// ─── Player controls overlay ──────────────────────────────────────────────────
+
+class _PlayerControls extends StatefulWidget {
+  const _PlayerControls({
+    required this.player,
+    required this.playUrl,
+    required this.onQualityTap,
+    required this.onFullscreen,
+  });
+
+  final Player player;
+  final PlayUrlModel? playUrl;
+  final VoidCallback? onQualityTap;
+  final VoidCallback onFullscreen;
+
+  @override
+  State<_PlayerControls> createState() => _PlayerControlsState();
+}
+
+class _PlayerControlsState extends State<_PlayerControls> {
+  bool _visible = true;
+  Timer? _hideTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleHide();
+  }
+
+  @override
+  void dispose() {
+    _hideTimer?.cancel();
+    super.dispose();
+  }
+
+  void _scheduleHide() {
+    _hideTimer?.cancel();
+    _hideTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _visible = false);
+    });
+  }
+
+  void _onTap() {
+    setState(() => _visible = !_visible);
+    if (_visible) _scheduleHide();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _onTap,
+      child: AnimatedOpacity(
+        opacity: _visible ? 1.0 : 0.0,
+        duration: const Duration(milliseconds: 200),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.transparent, Colors.black54],
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _ProgressBar(player: widget.player),
+              Row(
+                children: [
+                  StreamBuilder<bool>(
+                    stream: widget.player.stream.playing,
+                    initialData: widget.player.state.playing,
+                    builder: (_, snap) => IconButton(
+                      icon: Icon(
+                        snap.data == true ? Icons.pause : Icons.play_arrow,
+                        color: Colors.white,
+                      ),
+                      onPressed: () => widget.player.playOrPause(),
+                    ),
+                  ),
+                  const Spacer(),
+                  if (widget.onQualityTap != null)
+                    TextButton(
+                      onPressed: widget.onQualityTap,
+                      child: const Text('画质', style: TextStyle(color: Colors.white)),
+                    ),
+                  IconButton(
+                    icon: const Icon(Icons.fullscreen, color: Colors.white),
+                    onPressed: widget.onFullscreen,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Progress bar ─────────────────────────────────────────────────────────────
+
+class _ProgressBar extends StatelessWidget {
+  const _ProgressBar({required this.player});
+
+  final Player player;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<Duration>(
+      stream: player.stream.position,
+      initialData: player.state.position,
+      builder: (_, posSnap) {
+        return StreamBuilder<Duration>(
+          stream: player.stream.duration,
+          initialData: player.state.duration,
+          builder: (_, durSnap) {
+            final pos = posSnap.data ?? Duration.zero;
+            final dur = durSnap.data ?? Duration.zero;
+            final max = dur.inMilliseconds.toDouble();
+            final val = pos.inMilliseconds.toDouble().clamp(0.0, max > 0 ? max : 1.0);
+            return Slider(
+              value: val,
+              min: 0,
+              max: max > 0 ? max : 1.0,
+              activeColor: Colors.white,
+              inactiveColor: Colors.white38,
+              onChanged: max > 0
+                  ? (v) => player.seek(Duration(milliseconds: v.toInt()))
+                  : null,
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+// ─── Fullscreen player ────────────────────────────────────────────────────────
+
+class _FullscreenPlayer extends StatelessWidget {
+  const _FullscreenPlayer({required this.controller, required this.player});
+
+  final VideoController controller;
+  final Player player;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          Center(child: Video(controller: controller)),
+          Positioned(
+            top: 0,
+            left: 0,
+            child: SafeArea(
+              child: IconButton(
+                icon: const Icon(Icons.fullscreen_exit, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

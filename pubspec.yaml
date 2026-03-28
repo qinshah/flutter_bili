@@ -34,6 +34,9 @@ dependencies:
   window_manager: ^0.5.1
   tray_manager: ^0.5.2
   os_type: ^0.2.2
+  hive_ce: ^2.19.3
+  hive_ce_flutter: ^2.3.4
+  crypto: ^3.0.6
 
 dependency_overrides:
   media_kit:
@@ -81,6 +84,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  hive_ce_generator: ^1.11.1
+  build_runner: ^2.13.1
 
 flutter:
   uses-material-design: true

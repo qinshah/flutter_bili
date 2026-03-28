@@ -1,20 +1,72 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:os_type/os_type.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:provider/provider.dart';
+import 'package:window_manager/window_manager.dart';
+
+import 'core/app_storage.dart';
+import 'http/auth_interceptor.dart';
+import 'pages/home/home_scaffold.dart';
+import 'pages/login/login_page.dart';
+import 'pages/video/video_detail_page.dart';
+import 'services/auth_service.dart';
+import 'services/video_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // 如果需要在鸿蒙上判断是否为PC/Mobile，需要先await OS.initHarmonyDeviceType()
-  if (OS.isHarmony) await OS.initHarmonyDeviceType();
-  runApp(const MainApp());
+
+  await AppStorage.init();
+  MediaKit.ensureInitialized();
+
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    await windowManager.ensureInitialized();
+  }
+
+  final authService = AuthService();
+  authService.loadFromStorage();
+
+  final videoService = VideoService();
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AuthService>.value(value: authService),
+        ChangeNotifierProvider<VideoService>.value(value: videoService),
+      ],
+      child: BiliApp(isLogin: authService.isLogin),
+    ),
+  );
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class BiliApp extends StatelessWidget {
+  const BiliApp({super.key, required this.isLogin});
+
+  final bool isLogin;
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(body: Center(child: Text('Hello World!'))),
+    return MaterialApp(
+      navigatorKey: navigatorKey,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: const Color(0xFFFB7299),
+      ),
+      initialRoute: isLogin ? '/home' : '/login',
+      routes: {
+        '/login': (_) => const LoginPage(),
+        '/home': (_) => const HomeScaffold(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/video') {
+          final bvid = settings.arguments as String? ?? '';
+          return MaterialPageRoute<void>(
+            builder: (_) => VideoDetailPage(bvid: bvid),
+            settings: settings,
+          );
+        }
+        return null;
+      },
     );
   }
 }
