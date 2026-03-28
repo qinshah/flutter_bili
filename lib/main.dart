@@ -9,8 +9,11 @@ import 'core/app_storage.dart';
 import 'http/auth_interceptor.dart';
 import 'pages/home/home_scaffold.dart';
 import 'pages/login/login_page.dart';
+import 'pages/message/message_page.dart';
+import 'pages/search/search_page.dart';
 import 'pages/video/video_detail_page.dart';
 import 'services/auth_service.dart';
+import 'services/dynamics_service.dart';
 import 'services/recommend_service.dart';
 import 'services/video_service.dart';
 
@@ -29,6 +32,7 @@ Future<void> main() async {
 
   final videoService = VideoService();
   final recommendService = RecommendService();
+  final dynamicsService = DynamicsService();
 
   runApp(
     MultiProvider(
@@ -36,6 +40,7 @@ Future<void> main() async {
         ChangeNotifierProvider<AuthService>.value(value: authService),
         ChangeNotifierProvider<VideoService>.value(value: videoService),
         ChangeNotifierProvider<RecommendService>.value(value: recommendService),
+        ChangeNotifierProvider<DynamicsService>.value(value: dynamicsService),
       ],
       child: const BiliApp(),
     ),
@@ -57,6 +62,8 @@ class BiliApp extends StatelessWidget {
       routes: {
         '/login': (_) => const LoginPage(),
         '/home': (_) => const HomeScaffold(),
+        '/search': (_) => const SearchPage(),
+        '/message': (_) => const MessagePage(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/video') {

@@ -1,66 +1,77 @@
-import 'package:dio/dio.dart';
-import 'package:flutter_bili/http/api.dart';
-import 'package:flutter_bili/http/loading_state.dart';
-import 'package:flutter_bili/http/request.dart';
-import 'package:flutter_bili/models/video/play_url_model.dart';
-import 'package:flutter_bili/models/video/video_detail.dart';
-import 'package:flutter_bili/utils/wbi_sign.dart';
+import '../http/loading_state.dart';
+import '../http/request.dart';
+import '../http/api.dart';
+import '../models/video/related_video.dart';
+import '../models/video/video_detail.dart';
+import '../models/video/play_url_model.dart';
+import '../utils/wbi_sign.dart';
 
 abstract final class VideoHttp {
-  /// GET /x/web-interface/view?bvid=xxx
+  /// 获取视频详情
   static Future<LoadingState<VideoDetailData>> videoDetail({
     required String bvid,
   }) async {
-    try {
-      final res = await Request().get(
-        Api.videoIntro,
-        queryParameters: {'bvid': bvid},
-      );
-      if (res.data['code'] == 0) {
-        return Success(
-          VideoDetailData.fromJson(res.data['data'] as Map<String, dynamic>),
-        );
-      } else {
-        return Error(res.data['message'] as String?);
-      }
-    } catch (e) {
-      return Error(e.toString());
+    final res = await Request().get(
+      Api.videoIntro,
+      queryParameters: {'bvid': bvid},
+    );
+    
+    if (res.data['code'] == 0) {
+      return Success(VideoDetailData.fromJson(res.data['data']));
+    } else {
+      return Error(res.data['message']);
     }
   }
 
-  /// GET /x/player/wbi/playurl with Wbi signature, fnval=4048
+  /// 获取视频播放URL
   static Future<LoadingState<PlayUrlModel>> videoUrl({
     required String bvid,
     required int cid,
     int? qn,
   }) async {
-    try {
-      final params = <String, Object>{
-        'bvid': bvid,
-        'cid': cid,
-        'fnval': 4048,
-        'fnver': 0,
-        'fourk': 1,
-        if (qn != null) 'qn': qn,
-      };
-      await WbiSign.makSign(params);
-      final res = await Request().get(
-        Api.ugcUrl,
-        queryParameters: params.map((k, v) => MapEntry(k, v.toString())),
-      );
-      if (res.data['code'] == 0) {
-        return Success(
-          PlayUrlModel.fromJson(res.data['data'] as Map<String, dynamic>),
-        );
-      } else {
-        return Error(res.data['message'] as String?);
-      }
-    } catch (e) {
-      return Error(e.toString());
+    final params = await WbiSign.makSign({
+      'bvid': bvid,
+      'cid': cid,
+      'qn': qn ?? 80,
+      'fnval': 4048,
+      'fourk': 1,
+      'fnver': 0,
+      'voice_balance': 1,
+    });
+
+    final res = await Request().get(
+      Api.ugcUrl,
+      queryParameters: params,
+    );
+    
+    if (res.data['code'] == 0) {
+      return Success(PlayUrlModel.fromJson(res.data['data']));
+    } else {
+      return Error(res.data['message']);
     }
   }
 
-  /// POST /x/click-interface/web/heartbeat — fire-and-forget
+  /// 获取相关推荐视频
+  static Future<LoadingState<List<RelatedVideoItem>>> relatedVideoList({
+    required String bvid,
+  }) async {
+    final res = await Request().get(
+      Api.relatedList,
+      queryParameters: {'bvid': bvid},
+    );
+    
+    if (res.data['code'] == 0) {
+      final List<RelatedVideoItem> list = [];
+      for (final item in res.data['data'] as List) {
+        list.add(RelatedVideoItem.fromJson(item));
+      }
+      return Success(list);
+    } else {
+      return Error(res.data['message']);
+    }
+  }
+
+  /// 上报播放心跳
   static Future<void> heartBeat({
     required String bvid,
     required int cid,
@@ -69,15 +80,14 @@ abstract final class VideoHttp {
     try {
       await Request().post(
         Api.heartBeat,
-        data: FormData.fromMap({
+        data: {
           'bvid': bvid,
           'cid': cid,
           'played_time': progress,
-        }),
-        options: Options(contentType: Headers.formUrlEncodedContentType),
+        },
       );
-    } catch (_) {
-      // fire-and-forget: ignore errors
+    } catch (e) {
+      // 忽略心跳错误
     }
   }
 }

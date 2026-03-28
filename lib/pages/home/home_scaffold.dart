@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/auth_service.dart';
+import '../dynamics/dynamics_page.dart';
+import '../mine/mine_page.dart';
 import 'recommend_page.dart';
 
 class HomeScaffold extends StatefulWidget {
@@ -17,7 +19,8 @@ class _HomeScaffoldState extends State<HomeScaffold> {
   // 创建页面实例并保持它们的状态
   late final List<Widget> _pages = [
     const RecommendPage(),
-    const Center(child: Text('搜索')),
+    const DynamicsPage(),
+    const MinePage(),
   ];
 
   static const _destinations = [
@@ -27,9 +30,14 @@ class _HomeScaffoldState extends State<HomeScaffold> {
       label: '首页',
     ),
     NavigationDestination(
-      icon: Icon(Icons.search_outlined),
-      selectedIcon: Icon(Icons.search),
-      label: '搜索',
+      icon: Icon(Icons.motion_photos_on_outlined),
+      selectedIcon: Icon(Icons.motion_photos_on),
+      label: '动态',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.person_outline),
+      selectedIcon: Icon(Icons.person),
+      label: '我的',
     ),
   ];
 
@@ -58,9 +66,23 @@ class _HomeScaffoldState extends State<HomeScaffold> {
                     setState(() => _selectedIndex = index);
                   },
                   labelType: NavigationRailLabelType.all,
-                  leading: auth.isLogin 
-                      ? const _UserLeading() 
-                      : const _LoginButton(),
+                  leading: Column(
+                    children: [
+                      const SizedBox(height: 8),
+                      _buildUserAvatar(auth),
+                      const SizedBox(height: 8),
+                      IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: () => Navigator.pushNamed(context, '/search'),
+                        tooltip: '搜索',
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.notifications_outlined),
+                        onPressed: () => Navigator.pushNamed(context, '/message'),
+                        tooltip: '消息',
+                      ),
+                    ],
+                  ),
                   destinations: _destinations.map((d) {
                     return NavigationRailDestination(
                       icon: d.icon,
@@ -74,8 +96,14 @@ class _HomeScaffoldState extends State<HomeScaffold> {
               ],
             );
           } else {
-            // 窄屏布局：内容 + 底部导航栏
-            return body;
+            // 窄屏布局：顶部栏 + 内容 + 底部导航栏
+            return Column(
+              children: [
+                // 顶部栏
+                if (_selectedIndex == 0) _buildTopBar(auth),
+                Expanded(child: body),
+              ],
+            );
           }
         },
       ),
@@ -102,55 +130,64 @@ class _HomeScaffoldState extends State<HomeScaffold> {
       ),
     );
   }
-}
 
-/// 已登录用户头像
-class _UserLeading extends StatelessWidget {
-  const _UserLeading();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            child: Icon(Icons.person),
-          ),
-          SizedBox(height: 4),
-          Text(
-            '已登录',
-            style: TextStyle(fontSize: 11),
-          ),
-        ],
+  /// 顶部栏（仅窄屏首页显示）
+  Widget _buildTopBar(AuthService auth) {
+    return AppBar(
+      leading: Padding(
+        padding: const EdgeInsets.all(8),
+        child: _buildUserAvatar(auth),
       ),
+      title: GestureDetector(
+        onTap: () => Navigator.pushNamed(context, '/search'),
+        child: Container(
+          height: 36,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Row(
+            children: [
+              const SizedBox(width: 12),
+              Icon(
+                Icons.search,
+                size: 20,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '搜索',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.notifications_outlined),
+          onPressed: () => Navigator.pushNamed(context, '/message'),
+          tooltip: '消息',
+        ),
+      ],
     );
   }
-}
 
-/// 未登录登录按钮
-class _LoginButton extends StatelessWidget {
-  const _LoginButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.login),
-            onPressed: () {
-              Navigator.pushNamed(context, '/login');
-            },
-            tooltip: '登录',
-          ),
-          const Text(
-            '未登录',
-            style: TextStyle(fontSize: 11),
-          ),
-        ],
+  /// 用户头像
+  Widget _buildUserAvatar(AuthService auth) {
+    return GestureDetector(
+      onTap: () {
+        setState(() => _selectedIndex = 2); // 跳转到我的页面
+      },
+      child: CircleAvatar(
+        radius: 18,
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        child: auth.isLogin
+            ? const Icon(Icons.person, size: 20)
+            : const Icon(Icons.person_outline, size: 20),
       ),
     );
   }

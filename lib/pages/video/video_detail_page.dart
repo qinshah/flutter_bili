@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../../http/loading_state.dart';
 import '../../http/video_http.dart';
 import '../../models/video/play_url_model.dart';
+import '../../models/video/related_video.dart';
 import '../../models/video/video_detail.dart';
 import '../../services/video_service.dart';
 
@@ -41,6 +42,10 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   late final VideoController _controller;
   Timer? _heartbeatTimer;
   int _currentCid = 0;
+  
+  // 相关推荐视频
+  List<RelatedVideoItem> _relatedVideos = [];
+  bool _loadingRelated = false;
 
   @override
   void initState() {
@@ -73,6 +78,24 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
       await service.loadPlayUrl(widget.bvid, _currentCid);
       if (!mounted) return;
       _loadMedia(service.playUrl);
+      // 加载相关推荐
+      _loadRelatedVideos();
+    }
+  }
+
+  /// 加载相关推荐视频
+  Future<void> _loadRelatedVideos() async {
+    setState(() => _loadingRelated = true);
+    final result = await VideoHttp.relatedVideoList(bvid: widget.bvid);
+    if (!mounted) return;
+    
+    if (result is Success<List<RelatedVideoItem>>) {
+      setState(() {
+        _relatedVideos = result.response;
+        _loadingRelated = false;
+      });
+    } else {
+      setState(() => _loadingRelated = false);
     }
   }
 
@@ -408,6 +431,8 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
           _buildPlayer(playUrl),
           _buildPlayUrlError(service),
           _buildVideoInfo(detail),
+          const Divider(height: 1),
+          _buildTabSection(detail),
         ],
       ),
     );
@@ -417,7 +442,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Left: player + info
+        // Left: player + info + tabs
         Expanded(
           flex: 3,
           child: SingleChildScrollView(
@@ -427,21 +452,241 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
                 _buildPlayer(playUrl),
                 _buildPlayUrlError(service),
                 _buildVideoInfo(detail),
+                const Divider(height: 1),
+                _buildTabSection(detail),
               ],
             ),
           ),
         ),
-        // Right: recommendations placeholder
+        // Right: related videos
         Expanded(
           flex: 1,
-          child: Container(
-            color: Colors.grey.shade100,
-            child: const Center(
-              child: Text('推荐视频', style: TextStyle(color: Colors.grey)),
+          child: _buildRelatedVideosPanel(),
+        ),
+      ],
+    );
+  }
+
+  /// Tab区域（简介和评论）
+  Widget _buildTabSection(VideoDetailData detail) {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          const TabBar(
+            tabs: [
+              Tab(text: '简介'),
+              Tab(text: '评论'),
+            ],
+          ),
+          SizedBox(
+            height: 400,
+            child: TabBarView(
+              children: [
+                _buildIntroTab(detail),
+                _buildReplyTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 简介Tab
+  Widget _buildIntroTab(VideoDetailData detail) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        if (detail.desc.isNotEmpty) ...[
+          Text(
+            detail.desc,
+            style: const TextStyle(fontSize: 14),
+          ),
+          const SizedBox(height: 16),
+        ],
+        // 相关推荐（窄屏时显示）
+        LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth >= 800) {
+              return const SizedBox.shrink();
+            }
+            return _buildRelatedVideosSection();
+          },
+        ),
+      ],
+    );
+  }
+
+  /// 评论Tab
+  Widget _buildReplyTab() {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.chat_bubble_outline, size: 48, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              '评论区功能待实现',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 相关推荐视频区域（窄屏）
+  Widget _buildRelatedVideosSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: Text(
+            '相关推荐',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
+        if (_loadingRelated)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(),
+            ),
+          )
+        else
+          ..._relatedVideos.map((video) => _buildRelatedVideoCard(video)),
       ],
+    );
+  }
+
+  /// 相关推荐视频面板（宽屏）
+  Widget _buildRelatedVideosPanel() {
+    return Container(
+      color: Theme.of(context).colorScheme.surfaceContainerLowest,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              '相关推荐',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Expanded(
+            child: _loadingRelated
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    itemCount: _relatedVideos.length,
+                    itemBuilder: (context, index) {
+                      return _buildRelatedVideoCard(_relatedVideos[index]);
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 相关推荐视频卡片
+  Widget _buildRelatedVideoCard(RelatedVideoItem video) {
+    return InkWell(
+      onTap: () {
+        if (video.bvid != null) {
+          // 跳转到新的视频详情页
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => VideoDetailPage(bvid: video.bvid!),
+            ),
+          );
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 封面
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: video.pic != null
+                  ? CachedNetworkImage(
+                      imageUrl: video.pic!,
+                      width: 160,
+                      height: 90,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) => Container(
+                        width: 160,
+                        height: 90,
+                        color: Colors.grey[300],
+                        child: const Icon(Icons.error),
+                      ),
+                    )
+                  : Container(
+                      width: 160,
+                      height: 90,
+                      color: Colors.grey[300],
+                    ),
+            ),
+            const SizedBox(width: 12),
+            // 信息
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    video.title ?? '',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  if (video.owner?.name != null)
+                    Text(
+                      video.owner!.name!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.play_circle_outline,
+                        size: 14,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatCount(video.stat?.view ?? 0),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

@@ -91,6 +91,9 @@ abstract final class Api {
   // 默认搜索词
   static const String searchDefault = '/x/web-interface/wbi/search/default';
 
+  // 关注的up动态
+  static const String followDynamic = '/x/polymer/web-dynamic/v1/feed/all';
+
   // 登录相关
   static const String getTVCode =
       '${HttpString.passBaseUrl}/x/passport-tv-login/qrcode/auth_code';
