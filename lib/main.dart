@@ -34,15 +34,13 @@ Future<void> main() async {
         ChangeNotifierProvider<AuthService>.value(value: authService),
         ChangeNotifierProvider<VideoService>.value(value: videoService),
       ],
-      child: BiliApp(isLogin: authService.isLogin),
+      child: const BiliApp(),
     ),
   );
 }
 
 class BiliApp extends StatelessWidget {
-  const BiliApp({super.key, required this.isLogin});
-
-  final bool isLogin;
+  const BiliApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +50,7 @@ class BiliApp extends StatelessWidget {
         useMaterial3: true,
         colorSchemeSeed: const Color(0xFFFB7299),
       ),
-      initialRoute: isLogin ? '/home' : '/login',
+      initialRoute: '/home',
       routes: {
         '/login': (_) => const LoginPage(),
         '/home': (_) => const HomeScaffold(),

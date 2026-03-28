@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../services/auth_service.dart';
 import '../../widgets/adaptive_scaffold.dart';
+import 'recommend_page.dart';
 
 class HomeScaffold extends StatefulWidget {
   const HomeScaffold({super.key});
@@ -30,7 +31,7 @@ class _HomeScaffoldState extends State<HomeScaffold> {
   Widget get _body {
     switch (_selectedIndex) {
       case 0:
-        return const Center(child: Text('首页'));
+        return const RecommendPage();
       case 1:
         return const Center(child: Text('搜索'));
       default:
@@ -47,7 +48,7 @@ class _HomeScaffoldState extends State<HomeScaffold> {
           destinations: _destinations,
           onDestinationSelected: (index) => setState(() => _selectedIndex = index),
           body: _body,
-          leading: auth.isLogin ? const _UserLeading() : null,
+          leading: auth.isLogin ? const _UserLeading() : const _LoginButton(),
         );
       },
     );
@@ -71,6 +72,33 @@ class _UserLeading extends StatelessWidget {
           SizedBox(height: 4),
           Text(
             '已登录',
+            style: TextStyle(fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Shown in NavigationRail leading area when the user is not logged in.
+class _LoginButton extends StatelessWidget {
+  const _LoginButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.login),
+            onPressed: () {
+              Navigator.pushNamed(context, '/login');
+            },
+            tooltip: '登录',
+          ),
+          const Text(
+            '未登录',
             style: TextStyle(fontSize: 11),
           ),
         ],
