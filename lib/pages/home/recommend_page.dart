@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/recommend_service.dart';
@@ -132,10 +133,10 @@ class _RecommendPageState extends State<RecommendPage>
                 fit: StackFit.expand,
                 children: [
                   if (video.cover != null)
-                    Image.network(
-                      video.cover!,
+                    CachedNetworkImage(
+                      imageUrl: video.cover!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                      errorWidget: (_, __, ___) => Container(
                         color: Colors.grey[300],
                         child: const Icon(Icons.error),
                       ),
