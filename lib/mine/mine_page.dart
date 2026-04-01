@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../services/auth_service.dart';
+import '../app/service/auth_service.dart';
 
 /// 我的页面
 class MinePage extends StatefulWidget {

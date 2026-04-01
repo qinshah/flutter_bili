@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 
-import '../core/app_storage.dart';
+import '../service/storage_service.dart';
 
 abstract final class WbiSign {
   static const _mixinKeyEncTab = <int>[
@@ -60,8 +60,8 @@ abstract final class WbiSign {
 
   static FutureOr<String> _getOrRefreshMixinKey() {
     final now = DateTime.now();
-    final cachedTs = AppStorage.cache.get('wbiTimestamp', defaultValue: 0) as int;
-    final cachedKey = AppStorage.cache.get('mixinKey') as String?;
+    final cachedTs = StorageService.cache.get('wbiTimestamp', defaultValue: 0) as int;
+    final cachedKey = StorageService.cache.get('mixinKey') as String?;
 
     // Same calendar day → reuse cached key.
     if (cachedKey != null &&
@@ -88,13 +88,13 @@ abstract final class WbiSign {
       final subKey = _fileNameWithoutExt(wbiImg['sub_url'] as String);
       final mixinKey = getMixinKey(imgKey + subKey);
 
-      await AppStorage.cache.put('wbiTimestamp', now.millisecondsSinceEpoch);
-      await AppStorage.cache.put('mixinKey', mixinKey);
+      await StorageService.cache.put('wbiTimestamp', now.millisecondsSinceEpoch);
+      await StorageService.cache.put('mixinKey', mixinKey);
 
       return mixinKey;
     } catch (_) {
       // Return cached key if available, otherwise empty string.
-      return AppStorage.cache.get('mixinKey') as String? ?? '';
+      return StorageService.cache.get('mixinKey') as String? ?? '';
     }
   }
 

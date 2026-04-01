@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/dynamics/dynamics_item.dart';
-import '../../services/dynamics_service.dart';
+import 'model/dynamics_item.dart';
+import '../app/service/dynamics_service.dart';
 
 /// 动态页面
 class DynamicsPage extends StatefulWidget {

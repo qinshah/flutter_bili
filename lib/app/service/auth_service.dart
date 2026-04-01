@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import '../core/app_storage.dart';
-import '../models/auth/credentials.dart';
+import 'storage_service.dart';
+import '../../login/model/credentials.dart';
 
 class AuthService extends ChangeNotifier {
   Credentials? _credentials;
@@ -13,7 +13,7 @@ class AuthService extends ChangeNotifier {
 
   /// Load credentials from Hive storage on app startup
   void loadFromStorage() {
-    _credentials = AppStorage.credentials.get('main');
+    _credentials = StorageService.credentials.get('main');
     notifyListeners();
   }
 
@@ -32,14 +32,14 @@ class AuthService extends ChangeNotifier {
       csrf: csrf,
       expiresAt: expiresAt ?? DateTime.now().add(const Duration(days: 30)),
     );
-    await AppStorage.credentials.put('main', cred);
+    await StorageService.credentials.put('main', cred);
     _credentials = cred;
     notifyListeners();
   }
 
   /// Clear credentials from storage and update state
   Future<void> clearCredentials() async {
-    await AppStorage.credentials.delete('main');
+    await StorageService.credentials.delete('main');
     _credentials = null;
     notifyListeners();
   }

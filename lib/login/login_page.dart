@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:provider/provider.dart';
 
-import '../../http/loading_state.dart';
-import '../../http/login_http.dart';
-import '../../services/auth_service.dart';
-import '../../widgets/qr_code_poller.dart';
+import '../app/http/loading_state.dart';
+import '../app/http/login_http.dart';
+import '../app/service/auth_service.dart';
+import 'widget/qr_code_poller.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

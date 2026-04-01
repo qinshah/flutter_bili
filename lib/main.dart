@@ -5,22 +5,22 @@ import 'package:media_kit/media_kit.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
-import 'core/app_storage.dart';
-import 'http/auth_interceptor.dart';
-import 'pages/home/home_scaffold.dart';
-import 'pages/login/login_page.dart';
-import 'pages/message/message_page.dart';
-import 'pages/search/search_page.dart';
-import 'pages/video/video_detail_page.dart';
-import 'services/auth_service.dart';
-import 'services/dynamics_service.dart';
-import 'services/recommend_service.dart';
-import 'services/video_service.dart';
+import 'app/service/storage_service.dart';
+import 'app/http/auth_interceptor.dart';
+import 'home/home_scaffold.dart';
+import 'login/login_page.dart';
+import 'message/message_page.dart';
+import 'search/search_page.dart';
+import 'video/video_detail_page.dart';
+import 'app/service/auth_service.dart';
+import 'app/service/dynamics_service.dart';
+import 'app/service/recommend_service.dart';
+import 'app/service/video_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await AppStorage.init();
+  await StorageService.init();
   MediaKit.ensureInitialized();
 
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {

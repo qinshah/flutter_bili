@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_bili/utils/app_sign.dart';
+import 'package:flutter_bili/app/utils/app_sign.dart';
 
 void main() {
   group('AppSign.appSign', () {

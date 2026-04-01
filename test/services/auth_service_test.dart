@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
-import 'package:flutter_bili/core/app_storage.dart';
-import 'package:flutter_bili/models/auth/credentials.dart';
-import 'package:flutter_bili/services/auth_service.dart';
+import 'package:flutter_bili/app/service/storage_service.dart';
+import 'package:flutter_bili/login/model/credentials.dart';
+import 'package:flutter_bili/app/service/auth_service.dart';
 
 void main() {
   late AuthService authService;
@@ -15,9 +15,9 @@ void main() {
     if (!Hive.isAdapterRegistered(0)) {
       Hive.registerAdapter(CredentialsAdapter());
     }
-    AppStorage.credentials =
+    StorageService.credentials =
         await Hive.openBox<Credentials>('credentials_test');
-    AppStorage.cache = await Hive.openBox<dynamic>('cache_test');
+    StorageService.cache = await Hive.openBox<dynamic>('cache_test');
     authService = AuthService();
   });
 

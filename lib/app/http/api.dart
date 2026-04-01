@@ -1,4 +1,4 @@
-import 'package:flutter_bili/http/constants.dart';
+import 'package:flutter_bili/app/http/constants.dart';
 
 abstract final class Api {
   // 推荐视频

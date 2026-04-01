@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../http/dynamics_http.dart';
 import '../http/loading_state.dart';
-import '../models/dynamics/dynamics_item.dart';
+import '../../dynamic/model/dynamics_item.dart';
 
 /// 动态页面服务
 class DynamicsService extends ChangeNotifier {

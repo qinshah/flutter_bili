@@ -3,13 +3,13 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
-import 'package:flutter_bili/core/app_storage.dart';
-import 'package:flutter_bili/models/auth/credentials.dart';
-import 'package:flutter_bili/models/video/video_quality.dart';
-import 'package:flutter_bili/pages/video/video_detail_page.dart';
-import 'package:flutter_bili/services/auth_service.dart';
-import 'package:flutter_bili/services/video_service.dart';
-import 'package:flutter_bili/utils/wbi_sign.dart';
+import 'package:flutter_bili/app/service/storage_service.dart';
+import 'package:flutter_bili/login/model/credentials.dart';
+import 'package:flutter_bili/video/model/video_quality.dart';
+import 'package:flutter_bili/video/video_detail_page.dart';
+import 'package:flutter_bili/app/service/auth_service.dart';
+import 'package:flutter_bili/app/service/video_service.dart';
+import 'package:flutter_bili/app/utils/wbi_sign.dart';
 
 import '../fast_check.dart' as fc;
 
@@ -42,8 +42,8 @@ Future<void> _initHive() async {
   if (!Hive.isAdapterRegistered(0)) {
     Hive.registerAdapter(CredentialsAdapter());
   }
-  AppStorage.credentials = await Hive.openBox<Credentials>('credentials_prop');
-  AppStorage.cache = await Hive.openBox<dynamic>('cache_prop');
+  StorageService.credentials = await Hive.openBox<Credentials>('credentials_prop');
+  StorageService.cache = await Hive.openBox<dynamic>('cache_prop');
 }
 
 Future<void> _tearDownHive() async {
@@ -374,8 +374,8 @@ void main() {
     test('makSign adds w_rid and wts, and preserves all original keys', () async {
       // Pre-seed the cache with a mixinKey so no HTTP call is made
       const fakeMixinKey = 'abcdefghijklmnopqrstuvwxyz123456'; // 32 chars
-      await AppStorage.cache.put('mixinKey', fakeMixinKey);
-      await AppStorage.cache.put(
+      await StorageService.cache.put('mixinKey', fakeMixinKey);
+      await StorageService.cache.put(
         'wbiTimestamp',
         DateTime.now().millisecondsSinceEpoch,
       );

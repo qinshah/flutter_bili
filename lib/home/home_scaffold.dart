@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../services/auth_service.dart';
-import '../dynamics/dynamics_page.dart';
+import '../app/service/auth_service.dart';
+import '../dynamic/dynamics_page.dart';
 import '../mine/mine_page.dart';
 import 'recommend_page.dart';
 

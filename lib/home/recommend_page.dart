@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../services/recommend_service.dart';
-import '../../models/video/rec_video_item.dart';
+import '../app/service/recommend_service.dart';
+import '../video/model/rec_video_item.dart';
 
 class RecommendPage extends StatefulWidget {
   const RecommendPage({super.key});

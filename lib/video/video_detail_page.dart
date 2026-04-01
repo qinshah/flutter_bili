@@ -6,12 +6,12 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
 
-import '../../http/loading_state.dart';
-import '../../http/video_http.dart';
-import '../../models/video/play_url_model.dart';
-import '../../models/video/related_video.dart';
-import '../../models/video/video_detail.dart';
-import '../../services/video_service.dart';
+import '../app/http/loading_state.dart';
+import '../app/http/video_http.dart';
+import 'model/play_url_model.dart';
+import 'model/related_video.dart';
+import 'model/video_detail.dart';
+import '../app/service/video_service.dart';
 
 // ─── Error code mapping ───────────────────────────────────────────────────────
 

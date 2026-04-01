@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
-import '../core/app_storage.dart';
+import '../service/storage_service.dart';
 
 /// Global navigator key — register this in MaterialApp.navigatorKey
 /// so AuthInterceptor can navigate without a BuildContext.
@@ -21,7 +21,7 @@ class AuthInterceptor extends Interceptor {
   @override
   void onRequest(
       RequestOptions options, RequestInterceptorHandler handler) {
-    final cred = AppStorage.credentials.get('main');
+    final cred = StorageService.credentials.get('main');
 
     if (cred != null) {
       final isAppSide = _appSidePathFragments
@@ -63,7 +63,7 @@ class AuthInterceptor extends Interceptor {
   }
 
   void _clearAndRedirect() {
-    AppStorage.credentials.delete('main');
+    StorageService.credentials.delete('main');
     // 不自动跳转登录页，让用户手动点击登录按钮
     // 这样避免强制跳转且无法关闭的问题
   }

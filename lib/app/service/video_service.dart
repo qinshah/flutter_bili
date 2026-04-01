@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 
 import '../http/loading_state.dart';
 import '../http/video_http.dart';
-import '../models/video/play_url_model.dart';
-import '../models/video/video_detail.dart';
-import '../models/video/video_quality.dart';
+import '../../video/model/play_url_model.dart';
+import '../../video/model/video_detail.dart';
+import '../../video/model/video_quality.dart';
 
 class VideoService extends ChangeNotifier {
   VideoDetailData? _detail;

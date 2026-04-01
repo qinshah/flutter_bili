@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import '../http/login_http.dart';
-import '../services/auth_service.dart';
+import '../../app/http/login_http.dart';
+import '../../app/service/auth_service.dart';
 
 class QrCodePoller {
   final AuthService authService;

@@ -3,7 +3,7 @@
 // Check in to version control
 
 import 'package:hive_ce/hive_ce.dart';
-import 'package:flutter_bili/models/auth/credentials.dart';
+import 'package:flutter_bili/login/model/credentials.dart';
 
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {

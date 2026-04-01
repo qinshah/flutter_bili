@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_bili/http/api.dart';
-import 'package:flutter_bili/http/loading_state.dart';
-import 'package:flutter_bili/http/request.dart';
-import 'package:flutter_bili/utils/app_sign.dart';
+import 'package:flutter_bili/app/http/api.dart';
+import 'package:flutter_bili/app/http/loading_state.dart';
+import 'package:flutter_bili/app/http/request.dart';
+import 'package:flutter_bili/app/utils/app_sign.dart';
 
 abstract final class LoginHttp {
   /// POST /x/passport-tv-login/qrcode/auth_code (AppSign)

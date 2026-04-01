@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_bili/services/video_service.dart';
+import 'package:flutter_bili/app/service/video_service.dart';
 
 void main() {
   late VideoService service;

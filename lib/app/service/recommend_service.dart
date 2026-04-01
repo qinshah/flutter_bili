@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../http/loading_state.dart';
 import '../http/recommend_http.dart';
-import '../models/video/rec_video_item.dart';
+import '../../video/model/rec_video_item.dart';
 
 /// 首页推荐页面模型
 /// 管理视频列表数据、加载状态、滚动位置等所有页面状态
