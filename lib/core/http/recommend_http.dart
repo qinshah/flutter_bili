@@ -1,7 +1,7 @@
 import 'package:flutter_bili/core/http/api.dart';
 import 'package:flutter_bili/core/http/loading_state.dart';
 import 'package:flutter_bili/core/http/request.dart';
-import 'package:flutter_bili/feature/video/model/rec_video_item.dart';
+import 'package:flutter_bili/module/video/model/rec_video_item.dart';
 
 class RecommendHttp {
   static Future<LoadingState<List<RecVideoItem>>> getRecommendList({

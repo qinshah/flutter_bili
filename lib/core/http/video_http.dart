@@ -1,9 +1,9 @@
 import 'loading_state.dart';
 import 'request.dart';
 import 'api.dart';
-import '../../feature/video/model/related_video.dart';
-import '../../feature/video/model/video_detail.dart';
-import '../../feature/video/model/play_url_model.dart';
+import '../../module/video/model/related_video.dart';
+import '../../module/video/model/video_detail.dart';
+import '../../module/video/model/play_url_model.dart';
 import '../utils/wbi_sign.dart';
 
 abstract final class VideoHttp {

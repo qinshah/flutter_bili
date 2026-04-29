@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_bili/feature/login/model/credential_m.dart';
+import 'package:flutter_bili/module/login/model/credential_m.dart';
 import 'package:flutter_bili/service/storage_s.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 

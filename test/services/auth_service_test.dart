@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter_bili/feature/login/model/credential_m.dart';
+import 'package:flutter_bili/module/login/model/credential_m.dart';
 import 'package:flutter_bili/service/auth_s.dart';
 import 'package:flutter_bili/service/storage_s.dart';
 import 'package:flutter_test/flutter_test.dart';

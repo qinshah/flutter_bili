@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
-import '../feature/login/model/credential_m.dart';
+import '../module/login/model/credential_m.dart';
 import 'storage_s.dart';
 
 class AuthS extends ChangeNotifier {

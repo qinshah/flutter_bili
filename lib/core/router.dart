@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../feature/home/home_scaffold.dart';
-import '../feature/login/login_page.dart';
-import '../feature/message/message_page.dart';
-import '../feature/search/search_page.dart';
-import '../feature/setting/data_settings_page.dart';
-import '../feature/setting/player_settings_page.dart';
-import '../feature/setting/settings_page.dart';
-import '../feature/video/video_detail_page.dart';
+import '../module/home/home_scaffold.dart';
+import '../module/login/login_page.dart';
+import '../module/message/message_page.dart';
+import '../module/search/search_page.dart';
+import '../module/setting/data_settings_page.dart';
+import '../module/setting/player_settings_page.dart';
+import '../module/setting/settings_page.dart';
+import '../module/video/video_detail_page.dart';
 import 'routes.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();

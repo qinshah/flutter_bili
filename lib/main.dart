@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bili/core/router.dart';
-import 'package:flutter_bili/feature/dynamic/dynamic_page_vm.dart';
-import 'package:flutter_bili/feature/home/recommend_vm.dart';
-import 'package:flutter_bili/feature/video/video_page_vm.dart';
+import 'package:flutter_bili/module/dynamic/dynamic_page_vm.dart';
+import 'package:flutter_bili/module/home/recommend_vm.dart';
+import 'package:flutter_bili/module/video/video_page_vm.dart';
 import 'package:flutter_bili/service/auth_s.dart';
 import 'package:flutter_bili/service/media_s.dart';
 import 'package:flutter_bili/service/storage_s.dart';

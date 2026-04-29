@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_bili/feature/video/video_detail_page.dart';
+import 'package:flutter_bili/module/video/video_detail_page.dart';
 
 void main() {
   group('mapErrorCode', () {
