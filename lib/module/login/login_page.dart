@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bili/core/routes.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:provider/provider.dart';
 
@@ -24,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    _loadQrCode();
+    unawaited(_loadQrCode());
   }
 
   @override
@@ -60,9 +64,9 @@ class _LoginPageState extends State<LoginPage> {
           onError: (msg) {
             if (mounted) setState(() => _error = msg);
           },
-          onSuccess: () {
+          onSuccess: () async {
             if (mounted) {
-              Navigator.pushReplacementNamed(context, '/home');
+              await context.push(Routes.home);
             }
           },
         );
@@ -192,7 +196,9 @@ class _LoginPageState extends State<LoginPage> {
           Center(
             child: Card(
               elevation: 8,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: SizedBox(
                 width: 320,
                 height: 400,
@@ -203,7 +209,10 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       const Text(
                         '扫码登录',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       const Text(

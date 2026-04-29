@@ -15,10 +15,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await StorageS.init();
   MediaS.initLib();
-  Future.delayed(
-    const Duration(seconds: 5),
-    AuthS.i.loadLocalCredentials,
-  );
+  AuthS.i.loadLocalCredential();
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await windowManager.ensureInitialized();
   }

@@ -17,8 +17,8 @@ class AuthS extends ChangeNotifier {
   CredentialM? get credentials => _credentials;
 
   /// Load credentials from local storage
-  void loadLocalCredentials() {
-    _credentialBox.get('main');
+  void loadLocalCredential() {
+    _credentials = _credentialBox.get('main');
     notifyListeners();
   }
 

@@ -99,7 +99,7 @@ void main() {
         );
 
         final loaded = AuthS.i;
-        loaded.loadLocalCredentials();
+        loaded.loadLocalCredential();
 
         expect(loaded.isLogin, isTrue);
         expect(loaded.accessKey, equals(rec['accessKey']));

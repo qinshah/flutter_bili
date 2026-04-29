@@ -37,7 +37,7 @@ void main() {
 
       // Create a fresh service instance to simulate app restart
       final freshService = AuthS.i;
-      freshService.loadLocalCredentials();
+      freshService.loadLocalCredential();
 
       expect(freshService.isLogin, isTrue);
       expect(freshService.accessKey, 'test_access_key');
@@ -63,7 +63,7 @@ void main() {
 
         // Fresh service should have no credentials
         final freshService = AuthS.i;
-        freshService.loadLocalCredentials();
+        freshService.loadLocalCredential();
 
         expect(freshService.isLogin, isFalse);
         expect(freshService.accessKey, isNull);
@@ -73,7 +73,7 @@ void main() {
     );
 
     test('isLogin is false before any credentials are saved', () {
-      authService.loadLocalCredentials();
+      authService.loadLocalCredential();
       expect(authService.isLogin, isFalse);
     });
 

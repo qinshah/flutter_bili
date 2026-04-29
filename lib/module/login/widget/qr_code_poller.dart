@@ -30,12 +30,17 @@ class QrCodePoller {
         if (code == 0) {
           stop();
           final data = result['data'] as Map<String, dynamic>;
-          await authService.saveCredentials(
-            accessKey: data['access_token'] as String? ?? '',
-            refreshToken: data['refresh_token'] as String? ?? '',
-            sessdata: _extractSessdata(data),
-            csrf: _extractCsrf(data),
-          );
+          try {
+            await authService.saveCredentials(
+              accessKey: data['access_token'] as String? ?? '',
+              refreshToken: data['refresh_token'] as String? ?? '',
+              sessdata: _extractSessdata(data),
+              csrf: _extractCsrf(data),
+            );
+            print('保存登录数据成功');
+          } catch (e) {
+            print('保存登录数据失败: $e');
+          }
           onSuccess();
         } else if (code == 86038) {
           stop();
