@@ -1,21 +1,20 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bili/core/routes.dart';
+import 'package:flutter_bili/features/dynamic/dynamic_page_vm.dart';
+import 'package:flutter_bili/features/dynamic/model/dynamics_item.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/routes.dart';
-import 'dynamic_page_vm.dart';
-import 'model/dynamics_item.dart';
-
 /// 动态页面
-class DynamicsPage extends StatefulWidget {
-  const DynamicsPage({super.key});
+class DynamicPageView extends StatefulWidget {
+  const DynamicPageView({super.key});
 
   @override
-  State<DynamicsPage> createState() => _DynamicsPageState();
+  State<DynamicPageView> createState() => _DynamicPageViewState();
 }
 
-class _DynamicsPageState extends State<DynamicsPage>
+class _DynamicPageViewState extends State<DynamicPageView>
     with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
   @override
   bool get wantKeepAlive => true;
@@ -104,27 +103,23 @@ class _DynamicsPageState extends State<DynamicsPage>
 
   /// 最常访问UP主
   Widget _buildFrequentUps(ThemeData theme) {
-    return Container(
+    return SizedBox(
       height: 100,
-      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '最常访问',
-                  style: theme.textTheme.titleSmall,
-                ),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text('更多'),
-                ),
-              ],
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '最常访问',
+                style: theme.textTheme.titleSmall,
+              ),
+              TextButton(
+                onPressed: () {},
+                child: const Text('更多'),
+              ),
+            ],
           ),
           Expanded(
             child: ListView.builder(

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bili/core/routes.dart';
+import 'package:flutter_bili/features/dynamic/dynamic_page_view.dart';
+import 'package:flutter_bili/features/home/recommend_page.dart';
+import 'package:flutter_bili/features/mine/mine_page.dart';
+import 'package:flutter_bili/service/auth_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-
-import '../../core/routes.dart';
-import '../../service/auth_service.dart';
-import '../dynamic/dynamics_page.dart';
-import '../mine/mine_page.dart';
-import 'recommend_page.dart';
 
 class HomeScaffold extends StatefulWidget {
   const HomeScaffold({super.key});
@@ -21,7 +20,7 @@ class _HomeScaffoldState extends State<HomeScaffold> {
   // 创建页面实例并保持它们的状态
   late final List<Widget> _pages = [
     const RecommendPage(),
-    const DynamicsPage(),
+    const DynamicPageView(),
     const MinePage(),
   ];
 
