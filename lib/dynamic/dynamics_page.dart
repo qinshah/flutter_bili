@@ -1,8 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'model/dynamics_item.dart';
+
+import '../app/routes.dart';
 import '../app/service/dynamics_service.dart';
+import 'model/dynamics_item.dart';
 
 /// 动态页面
 class DynamicsPage extends StatefulWidget {
@@ -224,11 +227,7 @@ class _DynamicVideoTab extends StatelessWidget {
         onTap: () {
           // 跳转视频详情
           if (archive?.bvid != null) {
-            Navigator.pushNamed(
-              context,
-              '/video',
-              arguments: archive!.bvid,
-            );
+            context.push(Routes.video, extra: archive!.bvid!);
           }
         },
         child: Padding(

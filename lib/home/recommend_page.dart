@@ -1,6 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+
+import '../app/routes.dart';
 import '../app/service/recommend_service.dart';
 import '../video/model/rec_video_item.dart';
 
@@ -116,11 +119,7 @@ class _RecommendPageState extends State<RecommendPage>
       child: InkWell(
         onTap: () {
           if (video.bvid != null) {
-            Navigator.pushNamed(
-              context,
-              '/video',
-              arguments: video.bvid,
-            );
+            context.push(Routes.video, extra: video.bvid!);
           }
         },
         child: Column(

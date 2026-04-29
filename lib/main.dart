@@ -5,16 +5,11 @@ import 'package:media_kit/media_kit.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
-import 'app/service/storage_service.dart';
-import 'app/http/auth_interceptor.dart';
-import 'home/home_scaffold.dart';
-import 'login/login_page.dart';
-import 'message/message_page.dart';
-import 'search/search_page.dart';
-import 'video/video_detail_page.dart';
+import 'app/router.dart';
 import 'app/service/auth_service.dart';
 import 'app/service/dynamics_service.dart';
 import 'app/service/recommend_service.dart';
+import 'app/service/storage_service.dart';
 import 'app/service/video_service.dart';
 
 Future<void> main() async {
@@ -52,29 +47,14 @@ class BiliApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: navigatorKey,
+    return MaterialApp.router(
+      routerConfig: router,
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: const Color(0xFFFB7299),
       ),
-      initialRoute: '/home',
-      routes: {
-        '/login': (_) => const LoginPage(),
-        '/home': (_) => const HomeScaffold(),
-        '/search': (_) => const SearchPage(),
-        '/message': (_) => const MessagePage(),
-      },
-      onGenerateRoute: (settings) {
-        if (settings.name == '/video') {
-          final bvid = settings.arguments as String? ?? '';
-          return MaterialPageRoute<void>(
-            builder: (_) => VideoDetailPage(bvid: bvid),
-            settings: settings,
-          );
-        }
-        return null;
-      },
     );
   }
 }
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

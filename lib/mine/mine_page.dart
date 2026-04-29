@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+
+import '../app/routes.dart';
 import '../app/service/auth_service.dart';
 
 /// 我的页面
@@ -37,7 +40,7 @@ class _MinePageState extends State<MinePage>
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () {
-              // TODO: 设置
+              context.push(Routes.settings);
             },
           ),
         ],
@@ -78,7 +81,7 @@ class _MinePageState extends State<MinePage>
           const SizedBox(height: 24),
           FilledButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/login');
+              context.push(Routes.login);
             },
             child: const Text('登录'),
           ),

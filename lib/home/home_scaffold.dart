@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../app/routes.dart';
 import '../app/service/auth_service.dart';
 import '../dynamic/dynamics_page.dart';
 import '../mine/mine_page.dart';
@@ -73,12 +75,12 @@ class _HomeScaffoldState extends State<HomeScaffold> {
                       const SizedBox(height: 8),
                       IconButton(
                         icon: const Icon(Icons.search),
-                        onPressed: () => Navigator.pushNamed(context, '/search'),
+                        onPressed: () => context.push(Routes.search),
                         tooltip: '搜索',
                       ),
                       IconButton(
                         icon: const Icon(Icons.notifications_outlined),
-                        onPressed: () => Navigator.pushNamed(context, '/message'),
+                        onPressed: () => context.push(Routes.message),
                         tooltip: '消息',
                       ),
                     ],
@@ -139,7 +141,7 @@ class _HomeScaffoldState extends State<HomeScaffold> {
         child: _buildUserAvatar(auth),
       ),
       title: GestureDetector(
-        onTap: () => Navigator.pushNamed(context, '/search'),
+        onTap: () => context.push(Routes.search),
         child: Container(
           height: 36,
           decoration: BoxDecoration(
@@ -169,7 +171,7 @@ class _HomeScaffoldState extends State<HomeScaffold> {
       actions: [
         IconButton(
           icon: const Icon(Icons.notifications_outlined),
-          onPressed: () => Navigator.pushNamed(context, '/message'),
+          onPressed: () => context.push(Routes.message),
           tooltip: '消息',
         ),
       ],
