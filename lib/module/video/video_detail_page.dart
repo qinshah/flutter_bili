@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bili/module/video/model/video_quality_m.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/http/loading_state.dart';
@@ -114,17 +115,22 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
 
   // ── Quality switching ───────────────────────────────────────────────────────
 
-  void _showQualityPicker(PlayUrlModel playUrl) {
+  Future<void> _showQualityPicker(PlayUrlModel playUrlM) async {
     final service = context.read<VideoPageVm>();
-    final qualities = playUrl.acceptQuality ?? [];
+    final qualities = playUrlM.acceptQuality ?? [];
     if (qualities.isEmpty) return;
-
-    showModalBottomSheet<void>(
+    await showModalBottomSheet<void>(
       context: context,
       builder: (ctx) => ListView(
         shrinkWrap: true,
         children: qualities.map((qn) {
-          final label = _qualityLabel(qn);
+          final videoQuality = VideoQualityM.values.firstWhere(
+            (e) => e.qn == qn,
+            orElse: () => VideoQualityM.a1080p30,
+          );
+          final label = videoQuality.qn == qn
+              ? videoQuality.name
+              : qn.toString();
           return ListTile(
             title: Text(label),
             onTap: () async {
@@ -132,7 +138,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
               await service.loadPlayUrl(widget.bvid, _currentCid, qn: qn);
               if (!mounted) return;
               if (service.playUrl != null) {
-                MediaS.i.initAndLoad(
+                await MediaS.i.initAndLoad(
                   service.playUrl!,
                   bvid: widget.bvid,
                   cid: _currentCid,
@@ -145,17 +151,6 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     );
   }
 
-  String _qualityLabel(int qn) {
-    const map = {
-      116: '1080P60',
-      80: '1080P',
-      64: '720P',
-      32: '480P',
-      16: '360P',
-    };
-    return map[qn] ?? qn.toString();
-  }
-
   // ── Widgets ─────────────────────────────────────────────────────────────────
 
   Widget _buildPlayer(PlayUrlModel? playUrl) {
@@ -163,7 +158,9 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
       aspectRatio: 16 / 9,
       child: VideoPlayerV(
         playUrl: playUrl,
-        onQualityTap: playUrl != null ? () => _showQualityPicker(playUrl) : null,
+        onQualityTap: playUrl != null
+            ? () => _showQualityPicker(playUrl)
+            : null,
         onFullscreen: _pushFullscreen,
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:flutter_bili/module/video/model/video_quality_m.dart';
 import 'package:hive_ce/hive_ce.dart';
 
 part 'setting_m.g.dart';
@@ -8,33 +9,6 @@ enum PlayerLibraryM {
   mediaKit,
   @HiveField(1)
   fvp,
-}
-
-@HiveType(typeId: 3)
-enum VideoQualityM {
-  @HiveField(8)
-  a8k60('8K60', 60),
-  @HiveField(7)
-  a8k30('8K30', 30),
-  @HiveField(6)
-  a4k60('4K60', 60),
-  @HiveField(5)
-  a4k30('4K30', 30),
-  @HiveField(4)
-  a1080p60('1080P60', 60),
-  @HiveField(3)
-  a1080p30('1080P30', 30),
-  @HiveField(2)
-  a720p('720P', 30),
-  @HiveField(1)
-  a480p('480P', 30),
-  @HiveField(0)
-  a360p('360P', 30);
-
-  final String name;
-  final int fps;
-
-  const VideoQualityM(this.name, this.fps);
 }
 
 @HiveType(typeId: 1)

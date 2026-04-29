@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bili/module/video/model/video_quality_m.dart';
 import 'package:flutter_bili/service/media_s.dart';
 
-import 'model/setting_m.dart';
 import '../../service/storage_s.dart';
+import 'model/setting_m.dart';
 
 class PlayerSettingsPage extends StatefulWidget {
   const PlayerSettingsPage({super.key});
@@ -251,7 +252,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
   }
 
   void _showVideoQualityDialog() {
-    VideoQualityM selectedQuality = _settings.videoQuality;
+    var selectedQuality = _settings.videoQuality;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
