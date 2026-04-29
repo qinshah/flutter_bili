@@ -30,7 +30,7 @@ class _DataSettingsPageState extends State<DataSettingsPage> {
 
   void _loadSettings() {
     setState(() {
-      _settings = StorageS.getLocal();
+      _settings = StorageS.getSetting();
     });
   }
 

@@ -19,7 +19,7 @@ abstract final class StorageS {
     return Hive.openBox<T>(T.runtimeType.toString());
   }
 
-  static SettingM getLocal() {
+  static SettingM getSetting() {
     final saved = settingsB.get('main');
     if (saved == null) {
       print('bili: 本地设置为空');

@@ -1,17 +1,15 @@
-import 'dart:async';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:media_kit/media_kit.dart';
-import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/http/loading_state.dart';
 import '../../core/http/video_http.dart';
+import '../../service/media_s.dart';
 import 'model/play_url_model.dart';
 import 'model/related_video.dart';
 import 'model/video_detail.dart';
 import 'video_page_vm.dart';
+import 'widget/video_player_v.dart';
 
 // ─── Error code mapping ───────────────────────────────────────────────────────
 
@@ -29,7 +27,7 @@ String mapErrorCode(int? code, String? message) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 class VideoDetailPage extends StatefulWidget {
-  const VideoDetailPage({super.key, required this.bvid});
+  const VideoDetailPage({required this.bvid, super.key});
 
   final String bvid;
 
@@ -38,11 +36,8 @@ class VideoDetailPage extends StatefulWidget {
 }
 
 class _VideoDetailPageState extends State<VideoDetailPage> {
-  late final Player _player;
-  late final VideoController _controller;
-  Timer? _heartbeatTimer;
   int _currentCid = 0;
-  
+
   // 相关推荐视频
   List<RelatedVideoItem> _relatedVideos = [];
   bool _loadingRelated = false;
@@ -50,19 +45,12 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   @override
   void initState() {
     super.initState();
-    _player = Player(
-      configuration: const PlayerConfiguration(
-        bufferSize: 32 * 1024 * 1024, // 32MB buffer
-      ),
-    );
-    _controller = VideoController(_player);
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadDetail());
   }
 
   @override
   void dispose() {
-    _heartbeatTimer?.cancel();
-    _player.dispose();
+    MediaS.i.disposePlayer();
     super.dispose();
   }
 
@@ -77,7 +65,13 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
       _currentCid = detail.pages[0].cid;
       await service.loadPlayUrl(widget.bvid, _currentCid);
       if (!mounted) return;
-      _loadMedia(service.playUrl);
+      if (service.playUrl != null) {
+        MediaS.i.initAndLoad(
+          service.playUrl!,
+          bvid: widget.bvid,
+          cid: _currentCid,
+        );
+      }
       // 加载相关推荐
       _loadRelatedVideos();
     }
@@ -88,7 +82,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     setState(() => _loadingRelated = true);
     final result = await VideoHttp.relatedVideoList(bvid: widget.bvid);
     if (!mounted) return;
-    
+
     if (result is Success<List<RelatedVideoItem>>) {
       setState(() {
         _relatedVideos = result.response;
@@ -97,66 +91,6 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     } else {
       setState(() => _loadingRelated = false);
     }
-  }
-
-  Future<void> _loadMedia(PlayUrlModel? playUrl) async {
-    if (playUrl == null) return;
-    
-    final videoUrl = playUrl.dash?.video?.first.baseUrl;
-    final audioUrl = playUrl.dash?.audio?.first.baseUrl;
-    
-    if (videoUrl == null || videoUrl.isEmpty) return;
-
-    // B站的DASH视频需要分别加载视频和音频流
-    final headers = {
-      'referer': 'https://www.bilibili.com',
-      'user-agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-    };
-
-    try {
-      // 获取NativePlayer实例并设置音频
-      if (audioUrl != null && audioUrl.isNotEmpty) {
-        final nativePlayer = _player.platform as NativePlayer?;
-        if (nativePlayer != null) {
-          // 等待播放器初始化
-          await nativePlayer.waitForPlayerInitialization;
-          
-          // 设置音频轨道（参考PiliPlus）
-          await _player.setAudioTrack(AudioTrack.auto());
-          
-          // 处理URL中的特殊字符
-          final processedAudioUrl = audioUrl.replaceAll(':', '\\:');
-          
-          // 设置音频文件
-          await nativePlayer.setProperty('audio-files', processedAudioUrl);
-          debugPrint('音频URL已设置: $processedAudioUrl');
-        }
-      }
-
-      // 加载视频（带请求头）
-      await _player.open(
-        Media(videoUrl, httpHeaders: headers),
-        play: true,
-      );
-      
-      _startHeartbeat();
-    } catch (e) {
-      debugPrint('加载媒体失败: $e');
-    }
-  }
-
-  // ── Heartbeat ───────────────────────────────────────────────────────────────
-
-  void _startHeartbeat() {
-    _heartbeatTimer?.cancel();
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (_) {
-      VideoHttp.heartBeat(
-        bvid: widget.bvid,
-        cid: _currentCid,
-        progress: _player.state.position.inSeconds,
-      );
-    });
   }
 
   // ── Page switching ──────────────────────────────────────────────────────────
@@ -171,7 +105,10 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     Future.microtask(() async {
       await Future.delayed(const Duration(milliseconds: 300));
       if (!mounted) return;
-      _loadMedia(context.read<VideoPageVm>().playUrl);
+      final playUrl = context.read<VideoPageVm>().playUrl;
+      if (playUrl != null) {
+        MediaS.i.initAndLoad(playUrl, bvid: widget.bvid, cid: _currentCid);
+      }
     });
   }
 
@@ -194,7 +131,13 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
               Navigator.pop(ctx);
               await service.loadPlayUrl(widget.bvid, _currentCid, qn: qn);
               if (!mounted) return;
-              _loadMedia(service.playUrl);
+              if (service.playUrl != null) {
+                MediaS.i.initAndLoad(
+                  service.playUrl!,
+                  bvid: widget.bvid,
+                  cid: _currentCid,
+                );
+              }
             },
           );
         }).toList(),
@@ -218,31 +161,25 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   Widget _buildPlayer(PlayUrlModel? playUrl) {
     return AspectRatio(
       aspectRatio: 16 / 9,
-      child: Stack(
-        children: [
-          Video(controller: _controller),
-          // Controls overlay
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _PlayerControls(
-              player: _player,
-              playUrl: playUrl,
-              onQualityTap: playUrl != null ? () => _showQualityPicker(playUrl) : null,
-              onFullscreen: () => _pushFullscreen(),
-            ),
-          ),
-        ],
+      child: VideoPlayerV(
+        playUrl: playUrl,
+        onQualityTap: playUrl != null ? () => _showQualityPicker(playUrl) : null,
+        onFullscreen: _pushFullscreen,
       ),
     );
   }
 
-  void _pushFullscreen() {
-    Navigator.push(
+  Future<void> _pushFullscreen() async {
+    final service = context.read<VideoPageVm>();
+    await Navigator.push(
       context,
       MaterialPageRoute<void>(
-        builder: (_) => _FullscreenPlayer(controller: _controller, player: _player),
+        builder: (_) => _FullscreenPlayer(
+          playUrl: service.playUrl,
+          onQualityTap: service.playUrl != null
+              ? () => _showQualityPicker(service.playUrl!)
+              : null,
+        ),
       ),
     );
   }
@@ -276,11 +213,17 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
       children: [
         const Icon(Icons.play_arrow, size: 16, color: Colors.grey),
         const SizedBox(width: 4),
-        Text(_formatCount(stat.view), style: const TextStyle(color: Colors.grey, fontSize: 13)),
+        Text(
+          _formatCount(stat.view),
+          style: const TextStyle(color: Colors.grey, fontSize: 13),
+        ),
         const SizedBox(width: 16),
         const Icon(Icons.thumb_up_outlined, size: 16, color: Colors.grey),
         const SizedBox(width: 4),
-        Text(_formatCount(stat.like), style: const TextStyle(color: Colors.grey, fontSize: 13)),
+        Text(
+          _formatCount(stat.like),
+          style: const TextStyle(color: Colors.grey, fontSize: 13),
+        ),
       ],
     );
   }
@@ -329,7 +272,10 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('选集', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        const Text(
+          '选集',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        ),
         const SizedBox(height: 8),
         SizedBox(
           height: 40,
@@ -342,9 +288,14 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
               return GestureDetector(
                 onTap: () => _switchPage(i),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
-                    color: selected ? Theme.of(context).colorScheme.primary : Colors.grey.shade200,
+                    color: selected
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
@@ -423,7 +374,11 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     );
   }
 
-  Widget _buildNarrowLayout(VideoDetailData detail, PlayUrlModel? playUrl, VideoPageVm service) {
+  Widget _buildNarrowLayout(
+    VideoDetailData detail,
+    PlayUrlModel? playUrl,
+    VideoPageVm service,
+  ) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -438,7 +393,11 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
     );
   }
 
-  Widget _buildWideLayout(VideoDetailData detail, PlayUrlModel? playUrl, VideoPageVm service) {
+  Widget _buildWideLayout(
+    VideoDetailData detail,
+    PlayUrlModel? playUrl,
+    VideoPageVm service,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -700,7 +659,12 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
           children: [
             const Icon(Icons.warning_amber, color: Colors.orange, size: 18),
             const SizedBox(width: 6),
-            Expanded(child: Text(msg, style: const TextStyle(color: Colors.orange, fontSize: 13))),
+            Expanded(
+              child: Text(
+                msg,
+                style: const TextStyle(color: Colors.orange, fontSize: 13),
+              ),
+            ),
             TextButton(
               onPressed: () {
                 final detail = service.detail;
@@ -718,171 +682,23 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   }
 }
 
-// ─── Player controls overlay ──────────────────────────────────────────────────
-
-class _PlayerControls extends StatefulWidget {
-  const _PlayerControls({
-    required this.player,
-    required this.playUrl,
-    required this.onQualityTap,
-    required this.onFullscreen,
-  });
-
-  final Player player;
-  final PlayUrlModel? playUrl;
-  final VoidCallback? onQualityTap;
-  final VoidCallback onFullscreen;
-
-  @override
-  State<_PlayerControls> createState() => _PlayerControlsState();
-}
-
-class _PlayerControlsState extends State<_PlayerControls> {
-  bool _visible = true;
-  Timer? _hideTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    _scheduleHide();
-  }
-
-  @override
-  void dispose() {
-    _hideTimer?.cancel();
-    super.dispose();
-  }
-
-  void _scheduleHide() {
-    _hideTimer?.cancel();
-    _hideTimer = Timer(const Duration(seconds: 3), () {
-      if (mounted) setState(() => _visible = false);
-    });
-  }
-
-  void _onTap() {
-    setState(() => _visible = !_visible);
-    if (_visible) _scheduleHide();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: _onTap,
-      child: AnimatedOpacity(
-        opacity: _visible ? 1.0 : 0.0,
-        duration: const Duration(milliseconds: 200),
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Colors.transparent, Colors.black54],
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _ProgressBar(player: widget.player),
-              Row(
-                children: [
-                  StreamBuilder<bool>(
-                    stream: widget.player.stream.playing,
-                    initialData: widget.player.state.playing,
-                    builder: (_, snap) => IconButton(
-                      icon: Icon(
-                        snap.data == true ? Icons.pause : Icons.play_arrow,
-                        color: Colors.white,
-                      ),
-                      onPressed: () => widget.player.playOrPause(),
-                    ),
-                  ),
-                  const Spacer(),
-                  if (widget.onQualityTap != null)
-                    TextButton(
-                      onPressed: widget.onQualityTap,
-                      child: const Text('画质', style: TextStyle(color: Colors.white)),
-                    ),
-                  IconButton(
-                    icon: const Icon(Icons.fullscreen, color: Colors.white),
-                    onPressed: widget.onFullscreen,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Progress bar ─────────────────────────────────────────────────────────────
-
-class _ProgressBar extends StatelessWidget {
-  const _ProgressBar({required this.player});
-
-  final Player player;
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<Duration>(
-      stream: player.stream.position,
-      initialData: player.state.position,
-      builder: (_, posSnap) {
-        return StreamBuilder<Duration>(
-          stream: player.stream.duration,
-          initialData: player.state.duration,
-          builder: (_, durSnap) {
-            final pos = posSnap.data ?? Duration.zero;
-            final dur = durSnap.data ?? Duration.zero;
-            final max = dur.inMilliseconds.toDouble();
-            final val = pos.inMilliseconds.toDouble().clamp(0.0, max > 0 ? max : 1.0);
-            return Slider(
-              value: val,
-              min: 0,
-              max: max > 0 ? max : 1.0,
-              activeColor: Colors.white,
-              inactiveColor: Colors.white38,
-              onChanged: max > 0
-                  ? (v) => player.seek(Duration(milliseconds: v.toInt()))
-                  : null,
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
 // ─── Fullscreen player ────────────────────────────────────────────────────────
 
 class _FullscreenPlayer extends StatelessWidget {
-  const _FullscreenPlayer({required this.controller, required this.player});
+  const _FullscreenPlayer({this.playUrl, this.onQualityTap});
 
-  final VideoController controller;
-  final Player player;
+  final PlayUrlModel? playUrl;
+  final VoidCallback? onQualityTap;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          Center(child: Video(controller: controller)),
-          Positioned(
-            top: 0,
-            left: 0,
-            child: SafeArea(
-              child: IconButton(
-                icon: const Icon(Icons.fullscreen_exit, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-          ),
-        ],
+      body: VideoPlayerV(
+        playUrl: playUrl,
+        onQualityTap: onQualityTap,
+        onFullscreen: () => Navigator.pop(context),
+        isFullscreen: true,
       ),
     );
   }

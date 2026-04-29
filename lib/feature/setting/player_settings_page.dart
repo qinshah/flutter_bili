@@ -27,7 +27,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
 
   void _loadSettings() {
     setState(() {
-      _settings = StorageS.getLocal();
+      _settings = StorageS.getSetting();
     });
   }
 
