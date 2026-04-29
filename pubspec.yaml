@@ -51,6 +51,7 @@ dependencies:
   hive_ce_flutter: ^2.3.4
   crypto: ^3.0.6
   go_router: ^17.2.2
+  very_good_analysis: ^10.0.0
 
 dependency_overrides:
   path_provider: # 应用可用路径.鸿蒙适配
