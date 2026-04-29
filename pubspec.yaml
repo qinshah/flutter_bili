@@ -9,9 +9,19 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # 媒体通知.鸿蒙适配
+  audio_service:
+    git:
+      url: https://gitcode.com/openharmony-sig/fluttertpc_audio_service.git
+      path: audio_service
+      ref: br_v0.18.18_ohos_dev
+  audio_session:
+    git:
+      url: https://gitcode.com/openharmony-sig/flutter_audio_session.git
+      ref: br_v0.2.2_ohos
   fvp:
     git:
-      url: https://github.com/qinshah/fvp.git
+      url: https://github.com/wang-bin/fvp.git
   media_kit:
     git:
       url: https://github.com/Predidit/media-kit.git
