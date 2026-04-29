@@ -1,20 +1,20 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bili/core/routes.dart';
-import 'package:flutter_bili/feature/dynamic/dynamic_page_vm.dart';
-import 'package:flutter_bili/feature/dynamic/model/dynamics_item.dart';
+import 'package:flutter_bili/module/dynamic/dynamic_page_vm.dart';
+import 'package:flutter_bili/module/dynamic/model/dynamics_item.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 /// 动态页面
-class DynamicPageView extends StatefulWidget {
-  const DynamicPageView({super.key});
+class DynamicPageV extends StatefulWidget {
+  const DynamicPageV({super.key});
 
   @override
-  State<DynamicPageView> createState() => _DynamicPageViewState();
+  State<DynamicPageV> createState() => _DynamicPageVState();
 }
 
-class _DynamicPageViewState extends State<DynamicPageView>
+class _DynamicPageVState extends State<DynamicPageV>
     with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
   @override
   bool get wantKeepAlive => true;
