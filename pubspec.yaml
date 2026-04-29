@@ -9,6 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  fvp:
+    git:
+      url: https://github.com/qinshah/fvp.git
   media_kit:
     git:
       url: https://github.com/Predidit/media-kit.git
