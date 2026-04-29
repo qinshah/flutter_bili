@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'model/settings_m.dart';
+import 'model/setting_m.dart';
 import '../../service/storage_s.dart';
 
 class DataSettingsPage extends StatefulWidget {
@@ -14,7 +14,7 @@ class DataSettingsPage extends StatefulWidget {
 }
 
 class _DataSettingsPageState extends State<DataSettingsPage> {
-  late SettingsM _settings;
+  late SettingM _settings;
 
   @override
   void initState() {
@@ -138,7 +138,7 @@ class _DataSettingsPageState extends State<DataSettingsPage> {
             onPressed: () {
               try {
                 final jsonData = jsonDecode(cntlr.text);
-                final newSettings = SettingsM.fromJson(jsonData);
+                final newSettings = SettingM.fromJson(jsonData);
                 StorageS.saveSettings(newSettings);
                 _loadSettings();
                 Navigator.pop(context);
@@ -212,7 +212,7 @@ class _DataSettingsPageState extends State<DataSettingsPage> {
             ),
             onPressed: () async {
               Navigator.pop(context);
-              await StorageS.saveSettings(SettingsM());
+              await StorageS.saveSettings(SettingM());
               _loadSettings();
               if (!context.mounted) return;
               ScaffoldMessenger.of(

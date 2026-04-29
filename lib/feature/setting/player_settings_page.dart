@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'model/settings_m.dart';
+import 'model/setting_m.dart';
 import '../../service/storage_s.dart';
 
 class PlayerSettingsPage extends StatefulWidget {
@@ -11,7 +11,7 @@ class PlayerSettingsPage extends StatefulWidget {
 }
 
 class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
-  SettingsM _settings = SettingsM();
+  SettingM _settings = SettingM();
 
   @override
   void initState() {
@@ -72,7 +72,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
     return ListTile(
       title: const Text('播放器库'),
       subtitle: Text(
-        _settings.playerLibrary == PlayerLibrary.mediaKit ? 'media_kit' : 'fvp',
+        _settings.playerLibrary == PlayerLibraryM.mediaKit ? 'media_kit' : 'fvp',
       ),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: () => _showPlayerLibraryDialog(),
@@ -89,7 +89,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
   }
 
   void _showPlayerLibraryDialog() {
-    PlayerLibrary? selectedLibrary = _settings.playerLibrary;
+    PlayerLibraryM? selectedLibrary = _settings.playerLibrary;
 
     showDialog(
       context: context,
@@ -99,17 +99,17 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
           builder: (context, setState) => Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              RadioListTile<PlayerLibrary>(
+              RadioListTile<PlayerLibraryM>(
                 title: const Text('media_kit'),
-                value: PlayerLibrary.mediaKit,
+                value: PlayerLibraryM.mediaKit,
                 groupValue: selectedLibrary,
                 onChanged: (value) {
                   setState(() => selectedLibrary = value);
                 },
               ),
-              RadioListTile<PlayerLibrary>(
+              RadioListTile<PlayerLibraryM>(
                 title: const Text('fvp'),
-                value: PlayerLibrary.fvp,
+                value: PlayerLibraryM.fvp,
                 groupValue: selectedLibrary,
                 onChanged: (value) {
                   setState(() => selectedLibrary = value);
@@ -247,7 +247,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
   }
 
   void _showVideoQualityDialog() {
-    VideoQuality selectedQuality = _settings.videoQuality;
+    VideoQualityM selectedQuality = _settings.videoQuality;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -256,10 +256,10 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
           builder: (context, setState) => SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: List.generate(VideoQuality.values.length, (index) {
-                return RadioListTile<VideoQuality>(
-                  title: Text(VideoQuality.values[index].name),
-                  value: VideoQuality.values[index],
+              children: List.generate(VideoQualityM.values.length, (index) {
+                return RadioListTile<VideoQualityM>(
+                  title: Text(VideoQualityM.values[index].name),
+                  value: VideoQualityM.values[index],
                   groupValue: selectedQuality,
                   onChanged: (value) {
                     if (value == null) return;

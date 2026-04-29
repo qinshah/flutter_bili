@@ -5,9 +5,9 @@ import '../feature/home/home_scaffold.dart';
 import '../feature/login/login_page.dart';
 import '../feature/message/message_page.dart';
 import '../feature/search/search_page.dart';
-import '../feature/settings/data_settings_page.dart';
-import '../feature/settings/player_settings_page.dart';
-import '../feature/settings/settings_page.dart';
+import '../feature/setting/data_settings_page.dart';
+import '../feature/setting/player_settings_page.dart';
+import '../feature/setting/settings_page.dart';
 import '../feature/video/video_detail_page.dart';
 import 'routes.dart';
 

@@ -6,7 +6,7 @@ part of 'credential_m.dart';
 // TypeAdapterGenerator
 // **************************************************************************
 
-class CredentialsAdapter extends TypeAdapter<CredentialM> {
+class CredentialMAdapter extends TypeAdapter<CredentialM> {
   @override
   final typeId = 0;
 
@@ -47,7 +47,7 @@ class CredentialsAdapter extends TypeAdapter<CredentialM> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is CredentialsAdapter &&
+      other is CredentialMAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

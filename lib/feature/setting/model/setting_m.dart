@@ -1,9 +1,9 @@
 import 'package:hive_ce/hive_ce.dart';
 
-part 'app_settings.g.dart';
+part 'setting_m.g.dart';
 
 @HiveType(typeId: 2)
-enum PlayerLibrary {
+enum PlayerLibraryM {
   @HiveField(0)
   mediaKit,
   @HiveField(1)
@@ -11,7 +11,7 @@ enum PlayerLibrary {
 }
 
 @HiveType(typeId: 3)
-enum VideoQuality {
+enum VideoQualityM {
   @HiveField(8)
   a8k60('8K60', 60),
   @HiveField(7)
@@ -34,19 +34,19 @@ enum VideoQuality {
   final String name;
   final int fps;
 
-  const VideoQuality(this.name, this.fps);
+  const VideoQualityM(this.name, this.fps);
 }
 
 @HiveType(typeId: 1)
-class SettingsM {
+class SettingM {
   @HiveField(0)
-  PlayerLibrary playerLibrary;
+  PlayerLibraryM playerLibrary;
 
   @HiveField(1)
   bool enableDanmaku;
 
   @HiveField(2)
-  VideoQuality videoQuality;
+  VideoQualityM videoQuality;
 
   @HiveField(3)
   bool autoPlay;
@@ -55,22 +55,22 @@ class SettingsM {
   bool muteByDefault;
 
   /// 默认设置
-  SettingsM({
-    this.playerLibrary = PlayerLibrary.mediaKit,
+  SettingM({
+    this.playerLibrary = PlayerLibraryM.mediaKit,
     this.enableDanmaku = true,
-    this.videoQuality = VideoQuality.a1080p30,
+    this.videoQuality = VideoQualityM.a1080p30,
     this.autoPlay = false,
     this.muteByDefault = false,
   });
 
-  SettingsM copyWith({
-    PlayerLibrary? playerLibrary,
+  SettingM copyWith({
+    PlayerLibraryM? playerLibrary,
     bool? enableDanmaku,
-    VideoQuality? videoQuality,
+    VideoQualityM? videoQuality,
     bool? autoPlay,
     bool? muteByDefault,
   }) {
-    return SettingsM(
+    return SettingM(
       playerLibrary: playerLibrary ?? this.playerLibrary,
       enableDanmaku: enableDanmaku ?? this.enableDanmaku,
       videoQuality: videoQuality ?? this.videoQuality,
@@ -89,16 +89,16 @@ class SettingsM {
     };
   }
 
-  factory SettingsM.fromJson(Map<String, dynamic> json) {
-    return SettingsM(
-      playerLibrary: PlayerLibrary.values.firstWhere(
+  factory SettingM.fromJson(Map<String, dynamic> json) {
+    return SettingM(
+      playerLibrary: PlayerLibraryM.values.firstWhere(
         (e) => e.name == json['playerLibrary'],
-        orElse: () => PlayerLibrary.mediaKit,
+        orElse: () => PlayerLibraryM.mediaKit,
       ),
       enableDanmaku: json['enableDanmaku'] ?? true,
-      videoQuality: VideoQuality.values.firstWhere(
+      videoQuality: VideoQualityM.values.firstWhere(
         (e) => e.name == json['videoQuality'],
-        orElse: () => VideoQuality.a1080p30,
+        orElse: () => VideoQualityM.a1080p30,
       ),
       autoPlay: json['autoPlay'] ?? false,
       muteByDefault: json['muteByDefault'] ?? false,

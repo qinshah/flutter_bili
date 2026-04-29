@@ -10,7 +10,7 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
 
   @override
   Future<void> play() {
-    final playerLibrary = StorageS.getLocal();
+    final playerLibrary = StorageS.getLocal().playerLibrary;
     return super.play();
   }
 

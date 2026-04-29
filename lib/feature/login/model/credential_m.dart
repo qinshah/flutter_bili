@@ -1,6 +1,6 @@
 import 'package:hive_ce/hive.dart';
 
-part 'credentials.g.dart';
+part 'credential_m.g.dart';
 
 @HiveType(typeId: 0)
 class CredentialM extends HiveObject {
