@@ -56,5 +56,3 @@ class BiliApp extends StatelessWidget {
     );
   }
 }
-
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

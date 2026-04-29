@@ -1,7 +1,7 @@
 /// Minimal fast_check shim matching the API used in property tests.
 /// Provides fc.assert, fc.property, and arbitraries: fc.double, fc.integer,
 /// fc.string, fc.boolean, fc.record, fc.subarray, fc.constantFrom, fc.dictionary.
-library fast_check;
+library;
 
 import 'dart:math';
 
