@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bili/service/media_s.dart';
 
 import 'model/setting_m.dart';
 import '../../service/storage_s.dart';
@@ -72,7 +73,9 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
     return ListTile(
       title: const Text('播放器库'),
       subtitle: Text(
-        _settings.playerLibrary == PlayerLibraryM.mediaKit ? 'media_kit' : 'fvp',
+        _settings.playerLibrary == PlayerLibraryM.mediaKit
+            ? 'media_kit'
+            : 'fvp',
       ),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: () => _showPlayerLibraryDialog(),
@@ -89,7 +92,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
   }
 
   void _showPlayerLibraryDialog() {
-    PlayerLibraryM? selectedLibrary = _settings.playerLibrary;
+    PlayerLibraryM selectedLibrary = _settings.playerLibrary;
 
     showDialog(
       context: context,
@@ -104,6 +107,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
                 value: PlayerLibraryM.mediaKit,
                 groupValue: selectedLibrary,
                 onChanged: (value) {
+                  if (value == null) return;
                   setState(() => selectedLibrary = value);
                 },
               ),
@@ -112,6 +116,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
                 value: PlayerLibraryM.fvp,
                 groupValue: selectedLibrary,
                 onChanged: (value) {
+                  if (value == null) return;
                   setState(() => selectedLibrary = value);
                 },
               ),
@@ -125,17 +130,16 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
           ),
           TextButton(
             onPressed: () async {
-              if (selectedLibrary != null) {
-                Navigator.pop(context);
-                await StorageS.saveSettings(
-                  _settings.copyWith(playerLibrary: selectedLibrary!),
-                );
-                _loadSettings();
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('播放器库已更新')),
-                );
-              }
+              Navigator.pop(context);
+              await StorageS.saveSettings(
+                _settings.copyWith(playerLibrary: selectedLibrary!),
+              );
+              MediaS.initLib(selectedLibrary);
+              _loadSettings();
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('播放器库已更新')),
+              );
             },
             child: const Text('确定'),
           ),

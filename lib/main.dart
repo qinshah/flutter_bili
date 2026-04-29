@@ -8,14 +8,13 @@ import 'package:flutter_bili/feature/video/video_page_vm.dart';
 import 'package:flutter_bili/service/auth_s.dart';
 import 'package:flutter_bili/service/media_s.dart';
 import 'package:flutter_bili/service/storage_s.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  MediaKit.ensureInitialized();
   await StorageS.init();
+  MediaS.initLib();
   Future.delayed(
     const Duration(seconds: 5),
     AuthS.i.loadLocalCredentials,

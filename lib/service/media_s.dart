@@ -8,6 +8,7 @@ import 'package:flutter_bili/feature/video/model/play_url_model.dart';
 import 'package:flutter_bili/feature/video/widget/fvp_video_v.dart';
 import 'package:flutter_bili/feature/video/widget/media_kit_video_v.dart';
 import 'package:flutter_bili/service/storage_s.dart';
+import 'package:fvp/fvp.dart' as fvp;
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:video_player/video_player.dart';
@@ -17,6 +18,21 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
   MediaS._();
 
   static final MediaS i = MediaS._();
+
+  static bool _mediaKitInitialized = false;
+
+  static bool _fvpInitialized = false;
+
+  static void initLib([PlayerLibraryM? playerLibrary]) {
+    playerLibrary ??= StorageS.getSetting().playerLibrary;
+    if (playerLibrary == PlayerLibraryM.mediaKit && !_mediaKitInitialized) {
+      MediaKit.ensureInitialized();
+      _mediaKitInitialized = true;
+    } else if (playerLibrary == PlayerLibraryM.fvp && !_fvpInitialized) {
+      fvp.registerWith();
+      _fvpInitialized = true;
+    }
+  }
 
   // ── media_kit backend ───────────────────────────────────────────────────────
   Player? _mkPlayer;

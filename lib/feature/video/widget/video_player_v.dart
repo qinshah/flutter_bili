@@ -25,42 +25,6 @@ class VideoPlayerV extends StatefulWidget {
 }
 
 class _VideoPlayerVState extends State<VideoPlayerV> {
-  @override
-  Widget build(BuildContext context) {
-    context.watch<MediaS>();
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        MediaS.i.buildVideoWidget(),
-        _VideoHud(
-          playUrl: widget.playUrl,
-          onQualityTap: widget.onQualityTap,
-          onFullscreen: widget.onFullscreen,
-          isFullscreen: widget.isFullscreen,
-        ),
-      ],
-    );
-  }
-}
-
-class _VideoHud extends StatefulWidget {
-  const _VideoHud({
-    this.playUrl,
-    this.onQualityTap,
-    this.onFullscreen,
-    required this.isFullscreen,
-  });
-
-  final PlayUrlModel? playUrl;
-  final VoidCallback? onQualityTap;
-  final VoidCallback? onFullscreen;
-  final bool isFullscreen;
-
-  @override
-  State<_VideoHud> createState() => _VideoHudState();
-}
-
-class _VideoHudState extends State<_VideoHud> {
   bool _visible = true;
   Timer? _hideTimer;
 
@@ -90,72 +54,56 @@ class _VideoHudState extends State<_VideoHud> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: _onTap,
-      child: AnimatedOpacity(
-        opacity: _visible ? 1.0 : 0.0,
-        duration: const Duration(milliseconds: 200),
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Colors.transparent, Colors.black54],
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const _ProgressBar(),
-              Row(
-                children: [
-                  StreamBuilder<bool>(
-                    stream: MediaS.i.playingStream,
-                    initialData: MediaS.i.isPlaying,
-                    builder: (_, snap) => IconButton(
-                      icon: Icon(
-                        snap.data == true ? Icons.pause : Icons.play_arrow,
-                        color: Colors.white,
-                      ),
-                      onPressed: () => MediaS.i.playOrPause(),
-                    ),
-                  ),
-                  const Spacer(),
-                  if (widget.onQualityTap != null)
-                    TextButton(
-                      onPressed: widget.onQualityTap,
-                      child: const Text(
-                        '画质',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  if (widget.onFullscreen != null)
-                    IconButton(
-                      icon: Icon(
-                        widget.isFullscreen
-                            ? Icons.fullscreen_exit
-                            : Icons.fullscreen,
-                        color: Colors.white,
-                      ),
-                      onPressed: widget.onFullscreen,
-                    ),
-                ],
-              ),
-            ],
-          ),
+    context.watch<MediaS>();
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        MediaS.i.buildVideoWidget(),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _onTap,
         ),
-      ),
+        if (_visible)
+          _VideoHud(
+            playUrl: widget.playUrl,
+            onQualityTap: widget.onQualityTap,
+            onFullscreen: widget.onFullscreen,
+            isFullscreen: widget.isFullscreen,
+          ),
+      ],
     );
   }
 }
 
-class _ProgressBar extends StatelessWidget {
-  const _ProgressBar();
+class _VideoHud extends StatelessWidget {
+  const _VideoHud({
+    required this.isFullscreen,
+    this.playUrl,
+    this.onQualityTap,
+    this.onFullscreen,
+  });
+
+  final PlayUrlModel? playUrl;
+  final VoidCallback? onQualityTap;
+  final VoidCallback? onFullscreen;
+  final bool isFullscreen;
 
   @override
   Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 50,
+          child: _buildBottomButton(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomButton(BuildContext context) {
     return StreamBuilder<Duration>(
       stream: MediaS.i.positionStream,
       initialData: MediaS.i.currentPosition,
@@ -171,15 +119,45 @@ class _ProgressBar extends StatelessWidget {
               0.0,
               max > 0 ? max : 1.0,
             );
-            return Slider(
-              value: val,
-              min: 0,
-              max: max > 0 ? max : 1.0,
-              activeColor: Colors.white,
-              inactiveColor: Colors.white38,
-              onChanged: max > 0
-                  ? (v) => MediaS.i.seek(Duration(milliseconds: v.toInt()))
-                  : null,
+            return Row(
+              children: [
+                StreamBuilder<bool>(
+                  stream: MediaS.i.playingStream,
+                  initialData: MediaS.i.isPlaying,
+                  builder: (_, snap) => IconButton(
+                    icon: Icon(
+                      snap.data ?? false ? Icons.pause : Icons.play_arrow,
+                      color: Colors.white,
+                    ),
+                    onPressed: MediaS.i.playOrPause,
+                  ),
+                ),
+                Slider(
+                  value: val,
+                  max: max > 0 ? max : 1.0,
+                  activeColor: Colors.white,
+                  inactiveColor: Colors.white38,
+                  onChanged: max > 0
+                      ? (v) => MediaS.i.seek(Duration(milliseconds: v.toInt()))
+                      : null,
+                ),
+                if (onQualityTap != null)
+                  TextButton(
+                    onPressed: onQualityTap,
+                    child: const Text(
+                      '画质',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                if (onFullscreen != null)
+                  IconButton(
+                    icon: Icon(
+                      isFullscreen ? Icons.fullscreen_exit : Icons.fullscreen,
+                      color: Colors.white,
+                    ),
+                    onPressed: onFullscreen,
+                  ),
+              ],
             );
           },
         );

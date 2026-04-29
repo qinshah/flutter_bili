@@ -104,7 +104,7 @@ class _DynamicPageViewState extends State<DynamicPageView>
   /// 最常访问UP主
   Widget _buildFrequentUps(ThemeData theme) {
     return SizedBox(
-      height: 100,
+      height: 150,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
