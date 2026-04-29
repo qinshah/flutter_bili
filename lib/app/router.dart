@@ -5,6 +5,8 @@ import '../home/home_scaffold.dart';
 import '../login/login_page.dart';
 import '../message/message_page.dart';
 import '../search/search_page.dart';
+import '../settings/data_settings_page.dart';
+import '../settings/player_settings_page.dart';
 import '../settings/settings_page.dart';
 import '../video/video_detail_page.dart';
 import 'routes.dart';
@@ -41,6 +43,16 @@ final router = GoRouter(
     GoRoute(
       path: Routes.settings,
       builder: (context, state) => const SettingsPage(),
+      routes: [
+        GoRoute(
+          path: 'player',
+          builder: (context, state) => const PlayerSettingsPage(),
+        ),
+        GoRoute(
+          path: 'data',
+          builder: (context, state) => const DataSettingsPage(),
+        ),
+      ],
     ),
   ],
 );

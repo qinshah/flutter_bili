@@ -16,12 +16,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
   await StorageService.init();
-  // 在鸿蒙不使用try包裹会白屏，即使loadLocalCredentials没有出错
-  try {
-    AuthService.i.loadLocalCredentials();
-  } catch (e) {
-    debugPrint('加载本地凭证失败: $e');
-  }
+  Future.delayed(
+    const Duration(seconds: 5),
+    () => AuthService.i.loadLocalCredentials(),
+  );
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await windowManager.ensureInitialized();
   }

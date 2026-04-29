@@ -5,4 +5,6 @@ abstract class Routes {
   static const String message = '/message';
   static const String video = '/video';
   static const String settings = '/settings';
+  static const String playerSettings = '/settings/player';
+  static const String dataSettings = '/settings/data';
 }
