@@ -7,6 +7,9 @@ import '../../video/model/video_detail.dart';
 import '../../video/model/video_quality.dart';
 
 class VideoService extends ChangeNotifier {
+  VideoService._();
+  static final VideoService i = VideoService._();
+
   VideoDetailData? _detail;
   PlayUrlModel? _playUrl;
   int _selectedPage = 0;

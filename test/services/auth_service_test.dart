@@ -18,7 +18,7 @@ void main() {
     StorageService.credentials =
         await Hive.openBox<Credentials>('credentials_test');
     StorageService.cache = await Hive.openBox<dynamic>('cache_test');
-    authService = AuthService();
+    authService = AuthService.i;
   });
 
   tearDown(() async {
@@ -35,8 +35,8 @@ void main() {
       );
 
       // Create a fresh service instance to simulate app restart
-      final freshService = AuthService();
-      freshService.loadFromStorage();
+      final freshService = AuthService.i;
+      freshService.loadLocalCredentials();
 
       expect(freshService.isLogin, isTrue);
       expect(freshService.accessKey, 'test_access_key');
@@ -59,8 +59,8 @@ void main() {
       await authService.clearCredentials();
 
       // Fresh service should have no credentials
-      final freshService = AuthService();
-      freshService.loadFromStorage();
+      final freshService = AuthService.i;
+      freshService.loadLocalCredentials();
 
       expect(freshService.isLogin, isFalse);
       expect(freshService.accessKey, isNull);
@@ -69,7 +69,7 @@ void main() {
     });
 
     test('isLogin is false before any credentials are saved', () {
-      authService.loadFromStorage();
+      authService.loadLocalCredentials();
       expect(authService.isLogin, isFalse);
     });
 

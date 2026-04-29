@@ -6,6 +6,9 @@ import '../../video/model/rec_video_item.dart';
 /// 首页推荐页面模型
 /// 管理视频列表数据、加载状态、滚动位置等所有页面状态
 class RecommendService extends ChangeNotifier {
+  RecommendService._();
+  static final RecommendService i = RecommendService._();
+  
   final List<RecVideoItem> _videoList = [];
   bool _loading = false;
   String? _error;

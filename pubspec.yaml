@@ -1,6 +1,6 @@
 name: flutter_bili
 description: "Developing Bilibili with Flutter."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
@@ -43,6 +43,11 @@ dependencies:
   go_router: ^17.2.2
 
 dependency_overrides:
+  path_provider: # 应用可用路径.鸿蒙适配
+    git:
+      url: https://gitcode.com/openharmony-tpc/flutter_packages.git
+      path: packages/path_provider/path_provider
+      ref: br_path_provider-v2.1.5_ohos
   media_kit:
     git:
       url: https://github.com/Predidit/media-kit.git

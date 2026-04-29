@@ -92,7 +92,7 @@ void main() {
       );
 
       for (final rec in cases) {
-        final service = AuthService();
+        final service = AuthService.i;
         await service.saveCredentials(
           accessKey: rec['accessKey'] as String,
           refreshToken: rec['refreshToken'] as String,
@@ -100,8 +100,8 @@ void main() {
           csrf: rec['csrf'] as String,
         );
 
-        final loaded = AuthService();
-        loaded.loadFromStorage();
+        final loaded = AuthService.i;
+        loaded.loadLocalCredentials();
 
         expect(loaded.isLogin, isTrue);
         expect(loaded.accessKey, equals(rec['accessKey']));
@@ -266,7 +266,7 @@ void main() {
   group('Property 10: quality priority selection', () {
     // Feature: bili-mvp, Property 10: 画质优先级选择
     test('selectBestQuality returns highest-priority quality from any non-empty subset', () {
-      final service = VideoService();
+      final service = VideoService.i;
 
       fc.assertProp(
         fc.property(

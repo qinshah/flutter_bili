@@ -5,6 +5,9 @@ import '../../dynamic/model/dynamics_item.dart';
 
 /// 动态页面服务
 class DynamicsService extends ChangeNotifier {
+  DynamicsService._();
+  static final DynamicsService i = DynamicsService._();
+  
   final List<DynamicsItem> _videoList = [];
   bool _loading = false;
   String? _error;

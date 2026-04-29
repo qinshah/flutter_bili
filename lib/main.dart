@@ -14,32 +14,19 @@ import 'app/service/video_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  await StorageService.init();
   MediaKit.ensureInitialized();
-
+  await StorageService.init();
+  // 在鸿蒙不使用try包裹会白屏，即使loadLocalCredentials没有出错
+  try {
+    AuthService.i.loadLocalCredentials();
+  } catch (e) {
+    debugPrint('加载本地凭证失败: $e');
+  }
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await windowManager.ensureInitialized();
   }
 
-  final authService = AuthService();
-  authService.loadFromStorage();
-
-  final videoService = VideoService();
-  final recommendService = RecommendService();
-  final dynamicsService = DynamicsService();
-
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider<AuthService>.value(value: authService),
-        ChangeNotifierProvider<VideoService>.value(value: videoService),
-        ChangeNotifierProvider<RecommendService>.value(value: recommendService),
-        ChangeNotifierProvider<DynamicsService>.value(value: dynamicsService),
-      ],
-      child: const BiliApp(),
-    ),
-  );
+  runApp(const BiliApp());
 }
 
 class BiliApp extends StatelessWidget {
@@ -47,11 +34,21 @@ class BiliApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      routerConfig: router,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: const Color(0xFFFB7299),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AuthService>.value(value: AuthService.i),
+        ChangeNotifierProvider<VideoService>.value(value: VideoService.i),
+        ChangeNotifierProvider<RecommendService>.value(
+          value: RecommendService.i,
+        ),
+        ChangeNotifierProvider<DynamicsService>.value(value: DynamicsService.i),
+      ],
+      child: MaterialApp.router(
+        routerConfig: router,
+        theme: ThemeData(
+          useMaterial3: true,
+          colorSchemeSeed: const Color(0xFFFB7299),
+        ),
       ),
     );
   }

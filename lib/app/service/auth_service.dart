@@ -3,6 +3,9 @@ import 'storage_service.dart';
 import '../../login/model/credentials.dart';
 
 class AuthService extends ChangeNotifier {
+  AuthService._();
+  static final AuthService i = AuthService._();
+
   Credentials? _credentials;
 
   bool get isLogin => _credentials != null;
@@ -11,8 +14,8 @@ class AuthService extends ChangeNotifier {
   String? get csrf => _credentials?.csrf;
   Credentials? get credentials => _credentials;
 
-  /// Load credentials from Hive storage on app startup
-  void loadFromStorage() {
+  /// Load credentials from local storage
+  void loadLocalCredentials() {
     _credentials = StorageService.credentials.get('main');
     notifyListeners();
   }

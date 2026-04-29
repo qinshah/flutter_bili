@@ -5,7 +5,7 @@ void main() {
   late VideoService service;
 
   setUp(() {
-    service = VideoService();
+    service = VideoService.i;
   });
 
   group('VideoService.selectBestQuality', () {
