@@ -40,7 +40,7 @@ class _MinePageState extends State<MinePage>
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () {
-              context.push(Routes.settings);
+              context.push(Routes.setting);
             },
           ),
         ],

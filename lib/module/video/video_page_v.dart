@@ -1,7 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bili/core/routes.dart';
 import 'package:flutter_bili/module/video/model/video_quality_m.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:u_widget/u_widget.dart';
 
 import '../../core/http/loading_state.dart';
 import '../../core/http/video_http.dart';
@@ -27,16 +30,16 @@ String mapErrorCode(int? code, String? message) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-class VideoDetailPage extends StatefulWidget {
-  const VideoDetailPage({required this.bvid, super.key});
+class VideoPageV extends StatefulWidget {
+  const VideoPageV({required this.bvid, super.key});
 
   final String bvid;
 
   @override
-  State<VideoDetailPage> createState() => _VideoDetailPageState();
+  State<VideoPageV> createState() => _VideoPageVState();
 }
 
-class _VideoDetailPageState extends State<VideoDetailPage> {
+class _VideoPageVState extends State<VideoPageV> {
   int _currentCid = 0;
 
   // 相关推荐视频
@@ -153,30 +156,29 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
 
   // ── Widgets ─────────────────────────────────────────────────────────────────
 
-  Widget _buildPlayer(PlayUrlModel? playUrl) {
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: VideoPlayerV(
-        playUrl: playUrl,
-        onQualityTap: playUrl != null
-            ? () => _showQualityPicker(playUrl)
-            : null,
-        onFullscreen: _pushFullscreen,
-      ),
-    );
-  }
-
-  Future<void> _pushFullscreen() async {
-    final service = context.read<VideoPageVm>();
-    await Navigator.push(
-      context,
-      MaterialPageRoute<void>(
-        builder: (_) => _FullscreenPlayer(
-          playUrl: service.playUrl,
-          onQualityTap: service.playUrl != null
-              ? () => _showQualityPicker(service.playUrl!)
-              : null,
-        ),
+  Widget _buildPlayer() {
+    return UVideoPlayer(
+      video: MediaS.i.buildVideoView(),
+      topLeft: (_) => const BackButton(),
+      topRight: (_) =>
+          const Row(children: [Icon(Icons.info), Icon(Icons.more_vert)]),
+      topCenter: (_) => const Center(child: Text('标题')),
+      centerLeft: (_) => const Icon(Icons.lock),
+      centerRight: (_) => const Icon(Icons.camera),
+      bottomCenter: (_) => const LinearProgressIndicator(),
+      bottomLeft: (_) => const Row(children: [Icon(Icons.play_arrow)]),
+      bottomRight: (_) => Row(
+        children: [
+          IconButton(
+            onPressed: () async {
+              await context.push(
+                Routes.fullscreenVideo,
+                extra: widget.bvid,
+              );
+            },
+            icon: const Icon(Icons.fullscreen),
+          ),
+        ],
       ),
     );
   }
@@ -338,7 +340,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('视频详情')),
+      appBar: AppBar(toolbarHeight: 0),
       body: Consumer<VideoPageVm>(
         builder: (context, service, _) {
           // Detail loading state
@@ -380,7 +382,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildPlayer(playUrl),
+          _buildPlayer(),
           _buildPlayUrlError(service),
           _buildVideoInfo(detail),
           const Divider(height: 1),
@@ -405,7 +407,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildPlayer(playUrl),
+                _buildPlayer(),
                 _buildPlayUrlError(service),
                 _buildVideoInfo(detail),
                 const Divider(height: 1),
@@ -557,14 +559,12 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
   /// 相关推荐视频卡片
   Widget _buildRelatedVideoCard(RelatedVideoItem video) {
     return InkWell(
-      onTap: () {
+      onTap: () async {
         if (video.bvid != null) {
           // 跳转到新的视频详情页
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => VideoDetailPage(bvid: video.bvid!),
-            ),
+          await context.push(
+            Routes.video,
+            extra: video.bvid,
           );
         }
       },
@@ -692,7 +692,6 @@ class _FullscreenPlayer extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       body: VideoPlayerV(
-        playUrl: playUrl,
         onQualityTap: onQualityTap,
         onFullscreen: () => Navigator.pop(context),
         isFullscreen: true,

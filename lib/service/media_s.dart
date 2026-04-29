@@ -323,7 +323,7 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
 
   // ── widget access ───────────────────────────────────────────────────────────
 
-  Widget buildVideoWidget() {
+  Widget buildVideoView() {
     if (_currentLibrary == PlayerLibraryM.mediaKit && _mkController != null) {
       return MediaKitVideoV(controller: _mkController!);
     }

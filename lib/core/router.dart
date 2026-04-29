@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bili/module/video/full_screen_video_v.dart';
 import 'package:go_router/go_router.dart';
 
 import '../module/home/home_scaffold.dart';
@@ -8,7 +9,7 @@ import '../module/search/search_page.dart';
 import '../module/setting/data_settings_page.dart';
 import '../module/setting/player_settings_page.dart';
 import '../module/setting/settings_page.dart';
-import '../module/video/video_detail_page.dart';
+import '../module/video/video_page_v.dart';
 import 'routes.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -37,11 +38,20 @@ final router = GoRouter(
       path: Routes.video,
       builder: (context, state) {
         final bvid = state.extra as String? ?? '';
-        return VideoDetailPage(bvid: bvid);
+        return VideoPageV(bvid: bvid);
       },
+      routes: [
+        GoRoute(
+          path: 'fullscreen',
+          builder: (context, state) {
+            final bvid = state.extra as String? ?? '';
+            return FullScreenVideoV(bvid: bvid);
+          },
+        ),
+      ],
     ),
     GoRoute(
-      path: Routes.settings,
+      path: Routes.setting,
       builder: (context, state) => const SettingsPage(),
       routes: [
         GoRoute(

@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_bili/core/utils/wbi_sign.dart';
 import 'package:flutter_bili/module/login/model/credential_m.dart';
-import 'package:flutter_bili/module/video/video_detail_page.dart';
+import 'package:flutter_bili/module/video/video_page_v.dart';
 import 'package:flutter_bili/service/auth_s.dart';
 import 'package:flutter_bili/service/storage_s.dart';
 import 'package:flutter_test/flutter_test.dart';

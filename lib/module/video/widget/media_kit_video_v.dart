@@ -8,6 +8,12 @@ class MediaKitVideoV extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Video(controller: controller);
+    return Video(
+      controller: controller,
+      controls: null, // 关闭 media_kit 内置 SubtitleView，避免与外层叠加重复
+      subtitleViewConfiguration: const SubtitleViewConfiguration(
+        visible: false,
+      ),
+    );
   }
 }
