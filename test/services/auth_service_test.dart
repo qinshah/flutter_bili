@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
-import 'package:flutter_bili/app/service/storage_service.dart';
-import 'package:flutter_bili/login/model/credentials.dart';
-import 'package:flutter_bili/app/service/auth_service.dart';
+import 'package:flutter_bili/service/storage_service.dart';
+import 'package:flutter_bili/features/login/model/credentials.dart';
+import 'package:flutter_bili/service/auth_service.dart';
 
 void main() {
   late AuthService authService;

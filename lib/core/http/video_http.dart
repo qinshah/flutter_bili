@@ -1,0 +1,93 @@
+import 'loading_state.dart';
+import 'request.dart';
+import 'api.dart';
+import '../../features/video/model/related_video.dart';
+import '../../features/video/model/video_detail.dart';
+import '../../features/video/model/play_url_model.dart';
+import '../utils/wbi_sign.dart';
+
+abstract final class VideoHttp {
+  /// 获取视频详情
+  static Future<LoadingState<VideoDetailData>> videoDetail({
+    required String bvid,
+  }) async {
+    final res = await Request().get(
+      Api.videoIntro,
+      queryParameters: {'bvid': bvid},
+    );
+    
+    if (res.data['code'] == 0) {
+      return Success(VideoDetailData.fromJson(res.data['data']));
+    } else {
+      return Error(res.data['message']);
+    }
+  }
+
+  /// 获取视频播放URL
+  static Future<LoadingState<PlayUrlModel>> videoUrl({
+    required String bvid,
+    required int cid,
+    int? qn,
+  }) async {
+    final params = await WbiSign.makSign({
+      'bvid': bvid,
+      'cid': cid,
+      'qn': qn ?? 80,
+      'fnval': 4048,
+      'fourk': 1,
+      'fnver': 0,
+      'voice_balance': 1,
+    });
+
+    final res = await Request().get(
+      Api.ugcUrl,
+      queryParameters: params,
+    );
+    
+    if (res.data['code'] == 0) {
+      return Success(PlayUrlModel.fromJson(res.data['data']));
+    } else {
+      return Error(res.data['message']);
+    }
+  }
+
+  /// 获取相关推荐视频
+  static Future<LoadingState<List<RelatedVideoItem>>> relatedVideoList({
+    required String bvid,
+  }) async {
+    final res = await Request().get(
+      Api.relatedList,
+      queryParameters: {'bvid': bvid},
+    );
+    
+    if (res.data['code'] == 0) {
+      final List<RelatedVideoItem> list = [];
+      for (final item in res.data['data'] as List) {
+        list.add(RelatedVideoItem.fromJson(item));
+      }
+      return Success(list);
+    } else {
+      return Error(res.data['message']);
+    }
+  }
+
+  /// 上报播放心跳
+  static Future<void> heartBeat({
+    required String bvid,
+    required int cid,
+    required int progress,
+  }) async {
+    try {
+      await Request().post(
+        Api.heartBeat,
+        data: {
+          'bvid': bvid,
+          'cid': cid,
+          'played_time': progress,
+        },
+      );
+    } catch (e) {
+      // 忽略心跳错误
+    }
+  }
+}

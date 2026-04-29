@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_bili/app/utils/wbi_sign.dart';
+import 'package:flutter_bili/core/utils/wbi_sign.dart';
 
 void main() {
   // The shuffle table used by WbiSign:
