@@ -1,13 +1,13 @@
 import 'dart:io';
 
+import 'package:flutter_bili/feature/login/model/credential_m.dart';
+import 'package:flutter_bili/service/auth_s.dart';
+import 'package:flutter_bili/service/storage_s.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
-import 'package:flutter_bili/service/storage_service.dart';
-import 'package:flutter_bili/features/login/model/credentials.dart';
-import 'package:flutter_bili/service/auth_service.dart';
 
 void main() {
-  late AuthService authService;
+  late AuthS authService;
 
   setUp(() async {
     final dir = await Directory.systemTemp.createTemp('hive_test_');
@@ -15,10 +15,11 @@ void main() {
     if (!Hive.isAdapterRegistered(0)) {
       Hive.registerAdapter(CredentialsAdapter());
     }
-    StorageService.credentials =
-        await Hive.openBox<Credentials>('credentials_test');
-    StorageService.cache = await Hive.openBox<dynamic>('cache_test');
-    authService = AuthService.i;
+    StorageS.credentialB = await Hive.openBox<CredentialM>(
+      'credentials_test',
+    );
+    StorageS.cacheB = await Hive.openBox<dynamic>('cache_test');
+    authService = AuthS.i;
   });
 
   tearDown(() async {
@@ -35,7 +36,7 @@ void main() {
       );
 
       // Create a fresh service instance to simulate app restart
-      final freshService = AuthService.i;
+      final freshService = AuthS.i;
       freshService.loadLocalCredentials();
 
       expect(freshService.isLogin, isTrue);
@@ -45,28 +46,31 @@ void main() {
       expect(freshService.credentials?.refreshToken, 'test_refresh_token');
     });
 
-    test('clearCredentials then loadFromStorage returns null credentials', () async {
-      // First save credentials
-      await authService.saveCredentials(
-        accessKey: 'test_access_key',
-        refreshToken: 'test_refresh_token',
-        sessdata: 'test_sessdata',
-        csrf: 'test_csrf',
-      );
-      expect(authService.isLogin, isTrue);
+    test(
+      'clearCredentials then loadFromStorage returns null credentials',
+      () async {
+        // First save credentials
+        await authService.saveCredentials(
+          accessKey: 'test_access_key',
+          refreshToken: 'test_refresh_token',
+          sessdata: 'test_sessdata',
+          csrf: 'test_csrf',
+        );
+        expect(authService.isLogin, isTrue);
 
-      // Then clear
-      await authService.clearCredentials();
+        // Then clear
+        await authService.clearCredentials();
 
-      // Fresh service should have no credentials
-      final freshService = AuthService.i;
-      freshService.loadLocalCredentials();
+        // Fresh service should have no credentials
+        final freshService = AuthS.i;
+        freshService.loadLocalCredentials();
 
-      expect(freshService.isLogin, isFalse);
-      expect(freshService.accessKey, isNull);
-      expect(freshService.sessdata, isNull);
-      expect(freshService.credentials, isNull);
-    });
+        expect(freshService.isLogin, isFalse);
+        expect(freshService.accessKey, isNull);
+        expect(freshService.sessdata, isNull);
+        expect(freshService.credentials, isNull);
+      },
+    );
 
     test('isLogin is false before any credentials are saved', () {
       authService.loadLocalCredentials();

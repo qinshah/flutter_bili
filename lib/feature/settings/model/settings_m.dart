@@ -38,7 +38,7 @@ enum VideoQuality {
 }
 
 @HiveType(typeId: 1)
-class AppSettings {
+class SettingsM {
   @HiveField(0)
   PlayerLibrary playerLibrary;
 
@@ -55,7 +55,7 @@ class AppSettings {
   bool muteByDefault;
 
   /// 默认设置
-  AppSettings({
+  SettingsM({
     this.playerLibrary = PlayerLibrary.mediaKit,
     this.enableDanmaku = true,
     this.videoQuality = VideoQuality.a1080p30,
@@ -63,14 +63,14 @@ class AppSettings {
     this.muteByDefault = false,
   });
 
-  AppSettings copyWith({
+  SettingsM copyWith({
     PlayerLibrary? playerLibrary,
     bool? enableDanmaku,
     VideoQuality? videoQuality,
     bool? autoPlay,
     bool? muteByDefault,
   }) {
-    return AppSettings(
+    return SettingsM(
       playerLibrary: playerLibrary ?? this.playerLibrary,
       enableDanmaku: enableDanmaku ?? this.enableDanmaku,
       videoQuality: videoQuality ?? this.videoQuality,
@@ -89,8 +89,8 @@ class AppSettings {
     };
   }
 
-  factory AppSettings.fromJson(Map<String, dynamic> json) {
-    return AppSettings(
+  factory SettingsM.fromJson(Map<String, dynamic> json) {
+    return SettingsM(
       playerLibrary: PlayerLibrary.values.firstWhere(
         (e) => e.name == json['playerLibrary'],
         orElse: () => PlayerLibrary.mediaKit,

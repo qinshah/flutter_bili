@@ -5,15 +5,76 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 
-import '../../service/storage_service.dart';
+import '../../service/storage_s.dart';
 
 abstract final class WbiSign {
   static const _mixinKeyEncTab = <int>[
-    46, 47, 18, 2,  53, 8,  23, 32, 15, 50, 10, 31, 58, 3,  45, 35,
-    27, 43, 5,  49, 33, 9,  42, 19, 29, 28, 14, 39, 12, 38, 41, 13,
-    37, 48, 7,  16, 24, 55, 40, 61, 26, 17, 0,  1,  60, 51, 30, 4,
-    22, 25, 54, 21, 56, 59, 6,  63, 57, 62, 11, 36, 20, 34, 44, 52,
+    46,
+    47,
+    18,
+    2,
+    53,
+    8,
+    23,
+    32,
+    15,
+    50,
+    10,
+    31,
+    58,
+    3,
+    45,
+    35,
+    27,
+    43,
+    5,
+    49,
+    33,
+    9,
+    42,
+    19,
+    29,
+    28,
+    14,
+    39,
+    12,
+    38,
+    41,
+    13,
+    37,
+    48,
+    7,
+    16,
+    24,
+    55,
+    40,
+    61,
+    26,
+    17,
+    0,
+    1,
+    60,
+    51,
+    30,
+    4,
+    22,
+    25,
+    54,
+    21,
+    56,
+    59,
+    6,
+    63,
+    57,
+    62,
+    11,
+    36,
+    20,
+    34,
+    44,
+    52,
   ];
 
   static const _navUrl = 'https://api.bilibili.com/x/web-interface/nav';
@@ -50,18 +111,22 @@ abstract final class WbiSign {
     params['wts'] = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
     final keys = params.keys.toList()..sort();
-    final query = keys.map((k) {
-      final v = params[k].toString().replaceAll(_chrFilter, '');
-      return '${Uri.encodeComponent(k)}=${Uri.encodeComponent(v)}';
-    }).join('&');
+    final query = keys
+        .map((k) {
+          final v = params[k].toString().replaceAll(_chrFilter, '');
+          return '${Uri.encodeComponent(k)}=${Uri.encodeComponent(v)}';
+        })
+        .join('&');
 
     params['w_rid'] = md5.convert(utf8.encode(query + mixinKey)).toString();
   }
 
+  static final Box<dynamic> _cacheB = StorageS.cacheB;
+
   static FutureOr<String> _getOrRefreshMixinKey() {
     final now = DateTime.now();
-    final cachedTs = StorageService.cache.get('wbiTimestamp', defaultValue: 0) as int;
-    final cachedKey = StorageService.cache.get('mixinKey') as String?;
+    final cachedTs = _cacheB.get('wbiTimestamp', defaultValue: 0) as int;
+    final cachedKey = _cacheB.get('mixinKey') as String?;
 
     // Same calendar day → reuse cached key.
     if (cachedKey != null &&
@@ -77,10 +142,12 @@ abstract final class WbiSign {
 
   static Future<String> _fetchAndCache(DateTime now) async {
     try {
-      final dio = Dio(BaseOptions(
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 10),
-      ));
+      final dio = Dio(
+        BaseOptions(
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      );
       final resp = await dio.get(_navUrl);
       final wbiImg = resp.data['data']['wbi_img'] as Map<String, dynamic>;
 
@@ -88,13 +155,13 @@ abstract final class WbiSign {
       final subKey = _fileNameWithoutExt(wbiImg['sub_url'] as String);
       final mixinKey = getMixinKey(imgKey + subKey);
 
-      await StorageService.cache.put('wbiTimestamp', now.millisecondsSinceEpoch);
-      await StorageService.cache.put('mixinKey', mixinKey);
+      await _cacheB.put('wbiTimestamp', now.millisecondsSinceEpoch);
+      await _cacheB.put('mixinKey', mixinKey);
 
       return mixinKey;
     } catch (_) {
       // Return cached key if available, otherwise empty string.
-      return StorageService.cache.get('mixinKey') as String? ?? '';
+      return _cacheB.get('mixinKey') as String? ?? '';
     }
   }
 

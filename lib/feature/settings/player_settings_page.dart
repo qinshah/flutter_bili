@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'model/app_settings.dart';
-import '../../service/storage_service.dart';
+import 'model/settings_m.dart';
+import '../../service/storage_s.dart';
 
 class PlayerSettingsPage extends StatefulWidget {
   const PlayerSettingsPage({super.key});
@@ -11,7 +11,7 @@ class PlayerSettingsPage extends StatefulWidget {
 }
 
 class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
-  AppSettings _settings = AppSettings();
+  SettingsM _settings = SettingsM();
 
   @override
   void initState() {
@@ -27,7 +27,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
 
   void _loadSettings() {
     setState(() {
-      _settings = StorageService.getLocal();
+      _settings = StorageS.getLocal();
     });
   }
 
@@ -127,7 +127,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
             onPressed: () async {
               if (selectedLibrary != null) {
                 Navigator.pop(context);
-                await StorageService.saveSettings(
+                await StorageS.saveSettings(
                   _settings.copyWith(playerLibrary: selectedLibrary!),
                 );
                 _loadSettings();
@@ -162,7 +162,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await StorageService.saveSettings(
+              await StorageS.saveSettings(
                 _settings.copyWith(enableDanmaku: !_settings.enableDanmaku),
               );
               _loadSettings();
@@ -196,7 +196,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await StorageService.saveSettings(
+              await StorageS.saveSettings(
                 _settings.copyWith(autoPlay: !_settings.autoPlay),
               );
               _loadSettings();
@@ -230,7 +230,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await StorageService.saveSettings(
+              await StorageS.saveSettings(
                 _settings.copyWith(muteByDefault: !_settings.muteByDefault),
               );
               _loadSettings();
@@ -278,7 +278,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await StorageService.saveSettings(
+              await StorageS.saveSettings(
                 _settings.copyWith(videoQuality: selectedQuality),
               );
               _loadSettings();

@@ -1,12 +1,12 @@
 import 'dart:io';
 
+import 'package:flutter_bili/core/utils/wbi_sign.dart';
+import 'package:flutter_bili/feature/login/model/credential_m.dart';
+import 'package:flutter_bili/feature/video/video_detail_page.dart';
+import 'package:flutter_bili/service/auth_s.dart';
+import 'package:flutter_bili/service/storage_s.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
-import 'package:flutter_bili/service/storage_service.dart';
-import 'package:flutter_bili/features/login/model/credentials.dart';
-import 'package:flutter_bili/features/video/video_detail_page.dart';
-import 'package:flutter_bili/service/auth_service.dart';
-import 'package:flutter_bili/core/utils/wbi_sign.dart';
 
 import '../fast_check.dart' as fc;
 
@@ -39,8 +39,8 @@ Future<void> _initHive() async {
   if (!Hive.isAdapterRegistered(0)) {
     Hive.registerAdapter(CredentialsAdapter());
   }
-  StorageService.credentials = await Hive.openBox<Credentials>('credentials_prop');
-  StorageService.cache = await Hive.openBox<dynamic>('cache_prop');
+  StorageS._credentials = await Hive.openBox<CredentialM>('credentials_prop');
+  StorageS._cache = await Hive.openBox<dynamic>('cache_prop');
 }
 
 Future<void> _tearDownHive() async {
@@ -90,7 +90,7 @@ void main() {
       );
 
       for (final rec in cases) {
-        final service = AuthService.i;
+        final service = AuthS.i;
         await service.saveCredentials(
           accessKey: rec['accessKey'] as String,
           refreshToken: rec['refreshToken'] as String,
@@ -98,7 +98,7 @@ void main() {
           csrf: rec['csrf'] as String,
         );
 
-        final loaded = AuthService.i;
+        final loaded = AuthS.i;
         loaded.loadLocalCredentials();
 
         expect(loaded.isLogin, isTrue);
@@ -340,8 +340,8 @@ void main() {
     test('makSign adds w_rid and wts, and preserves all original keys', () async {
       // Pre-seed the cache with a mixinKey so no HTTP call is made
       const fakeMixinKey = 'abcdefghijklmnopqrstuvwxyz123456'; // 32 chars
-      await StorageService.cache.put('mixinKey', fakeMixinKey);
-      await StorageService.cache.put(
+      await StorageS._cache.put('mixinKey', fakeMixinKey);
+      await StorageS._cache.put(
         'wbiTimestamp',
         DateTime.now().millisecondsSinceEpoch,
       );

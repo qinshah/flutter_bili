@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/routes.dart';
-import '../../service/auth_service.dart';
+import '../../service/auth_s.dart';
 
 /// 我的页面
 class MinePage extends StatefulWidget {
@@ -22,7 +22,7 @@ class _MinePageState extends State<MinePage>
   Widget build(BuildContext context) {
     super.build(context);
     
-    final auth = context.watch<AuthService>();
+    final auth = context.watch<AuthS>();
     final theme = Theme.of(context);
     
     return Scaffold(
@@ -91,7 +91,7 @@ class _MinePageState extends State<MinePage>
   }
 
   /// 已登录状态
-  Widget _buildLoggedInContent(ThemeData theme, AuthService auth) {
+  Widget _buildLoggedInContent(ThemeData theme, AuthS auth) {
     return ListView(
       padding: EdgeInsets.zero,
       children: [
@@ -431,7 +431,7 @@ class _MinePageState extends State<MinePage>
     );
   }
 
-  Future<void> _showLogoutDialog(AuthService auth) async {
+  Future<void> _showLogoutDialog(AuthS auth) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(

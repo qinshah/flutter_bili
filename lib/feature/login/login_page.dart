@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/http/loading_state.dart';
 import '../../core/http/login_http.dart';
-import '../../service/auth_service.dart';
+import '../../service/auth_s.dart';
 import 'widget/qr_code_poller.dart';
 
 class LoginPage extends StatefulWidget {
@@ -51,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
     switch (result) {
       case Success(:final response):
         // 直接保存URL字符串，不创建QrCode和QrImage
-        final authService = Provider.of<AuthService>(context, listen: false);
+        final authService = Provider.of<AuthS>(context, listen: false);
         _poller = QrCodePoller(
           authService: authService,
           onExpired: () {

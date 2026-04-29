@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bili/core/routes.dart';
-import 'package:flutter_bili/features/dynamic/dynamic_page_view.dart';
-import 'package:flutter_bili/features/home/recommend_page.dart';
-import 'package:flutter_bili/features/mine/mine_page.dart';
-import 'package:flutter_bili/service/auth_service.dart';
+import 'package:flutter_bili/feature/dynamic/dynamic_page_view.dart';
+import 'package:flutter_bili/feature/home/recommend_page.dart';
+import 'package:flutter_bili/feature/mine/mine_page.dart';
+import 'package:flutter_bili/service/auth_s.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -44,7 +44,7 @@ class _HomeScaffoldState extends State<HomeScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthService>();
+    final auth = context.watch<AuthS>();
     
     return Scaffold(
       body: LayoutBuilder(
@@ -133,7 +133,7 @@ class _HomeScaffoldState extends State<HomeScaffold> {
   }
 
   /// 顶部栏（仅窄屏首页显示）
-  Widget _buildTopBar(AuthService auth) {
+  Widget _buildTopBar(AuthS auth) {
     return AppBar(
       leading: Padding(
         padding: const EdgeInsets.all(8),
@@ -178,7 +178,7 @@ class _HomeScaffoldState extends State<HomeScaffold> {
   }
 
   /// 用户头像
-  Widget _buildUserAvatar(AuthService auth) {
+  Widget _buildUserAvatar(AuthS auth) {
     return GestureDetector(
       onTap: () {
         setState(() => _selectedIndex = 2); // 跳转到我的页面

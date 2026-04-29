@@ -1,22 +1,24 @@
 import 'package:flutter/foundation.dart';
-import 'storage_service.dart';
-import '../features/login/model/credentials.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
+import '../feature/login/model/credential_m.dart';
+import 'storage_s.dart';
 
-class AuthService extends ChangeNotifier {
-  AuthService._();
-  static final AuthService i = AuthService._();
+class AuthS extends ChangeNotifier {
+  AuthS._();
+  static final AuthS i = AuthS._();
+  late final Box<CredentialM> _credentialBox = StorageS.credentialB;
 
-  Credentials? _credentials;
+  CredentialM? _credentials;
 
   bool get isLogin => _credentials != null;
   String? get accessKey => _credentials?.accessKey;
   String? get sessdata => _credentials?.sessdata;
   String? get csrf => _credentials?.csrf;
-  Credentials? get credentials => _credentials;
+  CredentialM? get credentials => _credentials;
 
   /// Load credentials from local storage
   void loadLocalCredentials() {
-    _credentials = StorageService.credentials.get('main');
+    _credentialBox.get('main');
     notifyListeners();
   }
 
@@ -28,21 +30,21 @@ class AuthService extends ChangeNotifier {
     required String csrf,
     DateTime? expiresAt,
   }) async {
-    final cred = Credentials(
+    final cred = CredentialM(
       accessKey: accessKey,
       refreshToken: refreshToken,
       sessdata: sessdata,
       csrf: csrf,
       expiresAt: expiresAt ?? DateTime.now().add(const Duration(days: 30)),
     );
-    await StorageService.credentials.put('main', cred);
+    await _credentialBox.put('main', cred);
     _credentials = cred;
     notifyListeners();
   }
 
   /// Clear credentials from storage and update state
   Future<void> clearCredentials() async {
-    await StorageService.credentials.delete('main');
+    await _credentialBox.delete('main');
     _credentials = null;
     notifyListeners();
   }

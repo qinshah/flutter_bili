@@ -3,7 +3,7 @@ import 'package:hive_ce/hive.dart';
 part 'credentials.g.dart';
 
 @HiveType(typeId: 0)
-class Credentials extends HiveObject {
+class CredentialM extends HiveObject {
   @HiveField(0)
   final String accessKey;
   @HiveField(1)
@@ -15,7 +15,7 @@ class Credentials extends HiveObject {
   @HiveField(4)
   final DateTime expiresAt;
 
-  Credentials({
+  CredentialM({
     required this.accessKey,
     required this.refreshToken,
     required this.sessdata,

@@ -3,14 +3,14 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/routes.dart';
-import '../../service/auth_service.dart';
+import '../../service/auth_s.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthService>();
+    final auth = context.watch<AuthS>();
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -244,7 +244,7 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  void _showLogoutDialog(BuildContext context, AuthService auth) {
+  void _showLogoutDialog(BuildContext context, AuthS auth) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

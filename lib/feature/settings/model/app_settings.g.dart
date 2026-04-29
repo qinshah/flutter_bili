@@ -1,22 +1,22 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'app_settings.dart';
+part of 'settings_m.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class AppSettingsAdapter extends TypeAdapter<AppSettings> {
+class AppSettingsAdapter extends TypeAdapter<SettingsM> {
   @override
   final typeId = 1;
 
   @override
-  AppSettings read(BinaryReader reader) {
+  SettingsM read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return AppSettings(
+    return SettingsM(
       playerLibrary: fields[0] == null
           ? PlayerLibrary.mediaKit
           : fields[0] as PlayerLibrary,
@@ -30,7 +30,7 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
   }
 
   @override
-  void write(BinaryWriter writer, AppSettings obj) {
+  void write(BinaryWriter writer, SettingsM obj) {
     writer
       ..writeByte(5)
       ..writeByte(0)

@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bili/core/routes.dart';
-import 'package:flutter_bili/features/dynamic/dynamic_page_vm.dart';
-import 'package:flutter_bili/features/dynamic/model/dynamics_item.dart';
+import 'package:flutter_bili/feature/dynamic/dynamic_page_vm.dart';
+import 'package:flutter_bili/feature/dynamic/model/dynamics_item.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 

@@ -1,22 +1,22 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'credentials.dart';
+part of 'credential_m.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class CredentialsAdapter extends TypeAdapter<Credentials> {
+class CredentialsAdapter extends TypeAdapter<CredentialM> {
   @override
   final typeId = 0;
 
   @override
-  Credentials read(BinaryReader reader) {
+  CredentialM read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return Credentials(
+    return CredentialM(
       accessKey: fields[0] as String,
       refreshToken: fields[1] as String,
       sessdata: fields[2] as String,
@@ -26,7 +26,7 @@ class CredentialsAdapter extends TypeAdapter<Credentials> {
   }
 
   @override
-  void write(BinaryWriter writer, Credentials obj) {
+  void write(BinaryWriter writer, CredentialM obj) {
     writer
       ..writeByte(5)
       ..writeByte(0)

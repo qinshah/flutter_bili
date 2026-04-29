@@ -2,8 +2,8 @@
 // Do not modify
 // Check in to version control
 
-import 'package:flutter_bili/features/login/model/credentials.dart';
-import 'package:flutter_bili/features/settings/model/app_settings.dart';
+import 'package:flutter_bili/feature/login/model/credential_m.dart';
+import 'package:flutter_bili/feature/settings/model/settings_m.dart';
 import 'package:hive_ce/hive_ce.dart';
 
 extension HiveRegistrar on HiveInterface {

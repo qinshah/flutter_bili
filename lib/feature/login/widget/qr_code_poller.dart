@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../../core/http/login_http.dart';
-import '../../../service/auth_service.dart';
+import '../../../service/auth_s.dart';
 
 class QrCodePoller {
-  final AuthService authService;
+  final AuthS authService;
   final VoidCallback onExpired;
   final void Function(String error) onError;
   final VoidCallback onSuccess;

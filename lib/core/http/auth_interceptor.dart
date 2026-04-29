@@ -1,11 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
-
-import '../../service/storage_service.dart';
-
-/// Global navigator key — register this in MaterialApp.navigatorKey
-/// so AuthInterceptor can navigate without a BuildContext.
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+import 'package:flutter_bili/feature/login/model/credential_m.dart';
+import 'package:flutter_bili/service/storage_s.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 
 /// Business codes that indicate the session is no longer valid.
 const _authFailureCodes = {-101, -102, -111, -400};
@@ -18,14 +14,16 @@ const _appSidePathFragments = [
 ];
 
 class AuthInterceptor extends Interceptor {
+  final Box<CredentialM> _credentialB = StorageS.credentialB;
+
   @override
-  void onRequest(
-      RequestOptions options, RequestInterceptorHandler handler) {
-    final cred = StorageService.credentials.get('main');
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    final cred = _credentialB.get('main');
 
     if (cred != null) {
-      final isAppSide = _appSidePathFragments
-          .any((fragment) => options.path.contains(fragment));
+      final isAppSide = _appSidePathFragments.any(
+        (fragment) => options.path.contains(fragment),
+      );
 
       if (isAppSide) {
         // App-side: inject access_key into query parameters
@@ -34,8 +32,9 @@ class AuthInterceptor extends Interceptor {
         // Web-side: inject SESSDATA into Cookie header
         final existing = options.headers['Cookie'] as String? ?? '';
         final sessdata = 'SESSDATA=${cred.sessdata}';
-        options.headers['Cookie'] =
-            existing.isEmpty ? sessdata : '$existing; $sessdata';
+        options.headers['Cookie'] = existing.isEmpty
+            ? sessdata
+            : '$existing; $sessdata';
       }
     }
 
@@ -43,27 +42,35 @@ class AuthInterceptor extends Interceptor {
   }
 
   @override
-  void onResponse(Response response, ResponseInterceptorHandler handler) {
+  Future<void> onResponse(
+    // 父类写死
+    // ignore: strict_raw_type
+    Response response,
+    ResponseInterceptorHandler handler,
+  ) async {
     final data = response.data;
     if (data is Map) {
       final code = data['code'];
       if (code is int && _authFailureCodes.contains(code)) {
-        _clearAndRedirect();
+        await _clearAndRedirect();
       }
     }
     handler.next(response);
   }
 
   @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     if (err.response?.statusCode == 401) {
-      _clearAndRedirect();
+      await _clearAndRedirect();
     }
     handler.next(err);
   }
 
-  void _clearAndRedirect() {
-    StorageService.credentials.delete('main');
+  Future<void> _clearAndRedirect() async {
+    await _credentialB.delete('main');
     // 不自动跳转登录页，让用户手动点击登录按钮
     // 这样避免强制跳转且无法关闭的问题
   }

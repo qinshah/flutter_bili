@@ -1,7 +1,7 @@
 import 'loading_state.dart';
 import 'request.dart';
 import 'api.dart';
-import '../../features/dynamic/model/dynamics_item.dart';
+import '../../feature/dynamic/model/dynamics_item.dart';
 
 abstract final class DynamicsHttp {
   /// 获取关注动态列表
