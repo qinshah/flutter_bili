@@ -1,4 +1,9 @@
 PODS:
+  - audio_service (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - audio_session (0.0.1):
+    - FlutterMacOS
   - FlutterMacOS (1.0.0)
   - fvp (0.36.0):
     - Flutter
@@ -30,6 +35,8 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
+  - audio_service (from `Flutter/ephemeral/.symlinks/plugins/audio_service/darwin`)
+  - audio_session (from `Flutter/ephemeral/.symlinks/plugins/audio_session/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - fvp (from `Flutter/ephemeral/.symlinks/plugins/fvp/darwin`)
   - media_kit_libs_macos_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_libs_macos_video/macos`)
@@ -48,6 +55,10 @@ SPEC REPOS:
     - mdk
 
 EXTERNAL SOURCES:
+  audio_service:
+    :path: Flutter/ephemeral/.symlinks/plugins/audio_service/darwin
+  audio_session:
+    :path: Flutter/ephemeral/.symlinks/plugins/audio_session/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
   fvp:
@@ -74,6 +85,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/window_manager/macos
 
 SPEC CHECKSUMS:
+  audio_service: aa99a6ba2ae7565996015322b0bb024e1d25c6fd
+  audio_session: eaca2512cf2b39212d724f35d11f46180ad3a33e
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   fvp: 0e6a29cac40c84ed412128493eb9e9294f18a85a
   mdk: 3bfb53e0bcc9643180eaa864360051f281e4c17b

@@ -4,10 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:flutter_bili/app/service/storage_service.dart';
 import 'package:flutter_bili/login/model/credentials.dart';
-import 'package:flutter_bili/video/model/video_quality.dart';
 import 'package:flutter_bili/video/video_detail_page.dart';
 import 'package:flutter_bili/app/service/auth_service.dart';
-import 'package:flutter_bili/app/service/video_service.dart';
 import 'package:flutter_bili/app/utils/wbi_sign.dart';
 
 import '../fast_check.dart' as fc;
@@ -258,37 +256,6 @@ void main() {
           },
         ),
         numRuns: 100,
-      );
-    });
-  });
-
-  // ── 9.6 Property 10: Quality priority selection ──────────────────────────────
-  group('Property 10: quality priority selection', () {
-    // Feature: bili-mvp, Property 10: 画质优先级选择
-    test('selectBestQuality returns highest-priority quality from any non-empty subset', () {
-      final service = VideoService.i;
-
-      fc.assertProp(
-        fc.property(
-          fc.subarray([116, 80, 64, 32, 16]),
-          (subset) {
-            if (subset.isEmpty) return; // skip empty subsets
-
-            final best = service.selectBestQuality(subset);
-
-            // Find the expected best: first in priorityOrder that is in subset
-            int? expected;
-            for (final qn in VideoQuality.priorityOrder) {
-              if (subset.contains(qn)) {
-                expected = qn;
-                break;
-              }
-            }
-
-            expect(best, equals(expected));
-          },
-        ),
-        numRuns: 200,
       );
     });
   });

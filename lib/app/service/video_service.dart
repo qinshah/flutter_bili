@@ -4,7 +4,6 @@ import '../http/loading_state.dart';
 import '../http/video_http.dart';
 import '../../video/model/play_url_model.dart';
 import '../../video/model/video_detail.dart';
-import '../../video/model/video_quality.dart';
 
 class VideoService extends ChangeNotifier {
   VideoService._();
@@ -58,15 +57,5 @@ class VideoService extends ChangeNotifier {
 
     final page = _detail!.pages[index];
     loadPlayUrl(_detail!.bvid, page.cid);
-  }
-
-  int selectBestQuality(List<int> availableQn) {
-    if (availableQn.isEmpty) return 80;
-
-    for (final qn in VideoQuality.priorityOrder) {
-      if (availableQn.contains(qn)) return qn;
-    }
-
-    return availableQn.first;
   }
 }
