@@ -221,12 +221,14 @@ class _VideoPageVState extends State<VideoPageV> {
   }
 
   Future<void> _fullScreen() async {
-    USystemS.fullScreen();
-    await context.push(
-      Routes.fullscreenVideo,
-      extra: widget.bvid,
-    );
-    USystemS.exitFullScreen();
+    await Future.wait([
+      USystemS.fullScreen(),
+      context.push(
+        Routes.fullscreenVideo,
+        extra: widget.bvid,
+      ),
+    ]);
+    await USystemS.exitFullScreen();
   }
 
   Widget _buildOwnerRow(VideoDetailData detail) {

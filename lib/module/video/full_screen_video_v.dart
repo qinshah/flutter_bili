@@ -127,7 +127,7 @@ class _FullScreenVideoVState extends State<FullScreenVideoV> {
 
   Future<void> _exitFullScreen() async {
     context.pop();
-    USystemS.exitFullScreen();
+    await USystemS.exitFullScreen();
   }
 
   String _formatDuration(Duration d) {

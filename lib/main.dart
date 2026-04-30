@@ -9,16 +9,13 @@ import 'package:flutter_bili/service/auth_s.dart';
 import 'package:flutter_bili/service/media_s.dart';
 import 'package:flutter_bili/service/storage_s.dart';
 import 'package:provider/provider.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:u_service/u_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await StorageS.init();
+  await Future.wait([StorageS.init(), USystemS.initWindowManager()]);
   MediaS.initLib();
   AuthS.i.loadLocalCredential();
-  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    await windowManager.ensureInitialized();
-  }
 
   runApp(const BiliApp());
 }
