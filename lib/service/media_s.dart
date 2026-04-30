@@ -115,7 +115,7 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
       if (_currentLibrary == PlayerLibraryM.mediaKit) {
         await _initMediaKit(videoUrl, playUrl, headers);
       } else {
-        await _initFvp(videoUrl, headers);
+        await _initFvp(videoUrl, playUrl, headers);
       }
       _startHeartbeat();
       notifyListeners();
@@ -172,13 +172,21 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
 
   // ── fvp backend ─────────────────────────────────────────────────────────────
 
-  Future<void> _initFvp(String videoUrl, Map<String, String> headers) async {
+  Future<void> _initFvp(
+    String videoUrl,
+    PlayUrlModel playUrl,
+    Map<String, String> headers,
+  ) async {
     _initFvpStreams();
     _fvpController = VideoPlayerController.networkUrl(
       Uri.parse(videoUrl),
       httpHeaders: headers,
     );
     await _fvpController!.initialize();
+
+    final audioUrl = playUrl.dash?.audio?.first.baseUrl;
+    if (audioUrl != null) _fvpController!.setExternalAudio(audioUrl);
+
     _fvpController!.addListener(_onFvpUpdate);
     _onFvpUpdate();
     await _fvpController!.play();
