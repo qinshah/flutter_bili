@@ -9,6 +9,7 @@ import 'package:flutter_bili/module/video/model/video_quality_m.dart';
 import 'package:flutter_bili/module/video/widget/progress_v.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:u_service/u_service.dart';
 import 'package:u_widget/u_widget.dart';
 
 import '../../core/http/loading_state.dart';
@@ -166,14 +167,14 @@ class _VideoPageVState extends State<VideoPageV> {
       onProgressTapDown: MediaS.i.seekByProgress,
       onTogglePlay: MediaS.i.playOrPause,
       onDoubleTapDown: (details) => details.kind == PointerDeviceKind.mouse
-          ? _fullscreen()
+          ? _fullScreen()
           : MediaS.i.playOrPause(),
       video: MediaS.i.buildVideoView(),
       topLeft: (_) => const BackButton(color: Colors.white),
       bottomRight: (_) => Row(
         children: [
           IconButton(
-            onPressed: _fullscreen,
+            onPressed: _fullScreen,
             icon: const Icon(
               Icons.fullscreen,
               color: Colors.white,
@@ -219,33 +220,13 @@ class _VideoPageVState extends State<VideoPageV> {
     );
   }
 
-  Future<void> _fullscreen() async {
-    unawaited(
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]),
-    );
-    unawaited(
-      SystemChrome.setEnabledSystemUIMode(
-        SystemUiMode.immersiveSticky,
-      ),
-    );
+  Future<void> _fullScreen() async {
+    USystemS.fullScreen();
     await context.push(
       Routes.fullscreenVideo,
       extra: widget.bvid,
     );
-    unawaited(
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ]),
-    );
-    unawaited(
-      SystemChrome.setEnabledSystemUIMode(
-        SystemUiMode.edgeToEdge,
-      ),
-    );
+    USystemS.exitFullScreen();
   }
 
   Widget _buildOwnerRow(VideoDetailData detail) {

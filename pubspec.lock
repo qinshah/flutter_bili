@@ -1049,6 +1049,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  u_service:
+    dependency: "direct main"
+    description:
+      path: "../../FP/u_service"
+      relative: true
+    source: path
+    version: "0.0.1"
   u_widget:
     dependency: "direct main"
     description:

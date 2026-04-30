@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bili/module/video/model/play_url_model.dart';
 import 'package:flutter_bili/module/video/model/video_quality_m.dart';
 import 'package:flutter_bili/module/video/video_page_vm.dart';
@@ -10,6 +9,7 @@ import 'package:flutter_bili/module/video/widget/progress_v.dart';
 import 'package:flutter_bili/service/media_s.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:u_service/u_service.dart';
 import 'package:u_widget/u_widget.dart';
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -127,17 +127,7 @@ class _FullScreenVideoVState extends State<FullScreenVideoV> {
 
   Future<void> _exitFullScreen() async {
     context.pop();
-    unawaited(
-      SystemChrome.setEnabledSystemUIMode(
-        SystemUiMode.edgeToEdge,
-      ),
-    );
-    unawaited(
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ]),
-    );
+    USystemS.exitFullScreen();
   }
 
   String _formatDuration(Duration d) {
