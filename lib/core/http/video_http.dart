@@ -1,10 +1,10 @@
-import 'loading_state.dart';
-import 'request.dart';
-import 'api.dart';
+import '../../module/video/model/play_url_model.dart';
 import '../../module/video/model/related_video.dart';
 import '../../module/video/model/video_detail.dart';
-import '../../module/video/model/play_url_model.dart';
 import '../utils/wbi_sign.dart';
+import 'api.dart';
+import 'loading_state.dart';
+import 'request.dart';
 
 abstract final class VideoHttp {
   /// 获取视频详情

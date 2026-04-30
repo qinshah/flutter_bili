@@ -167,7 +167,18 @@ class _VideoPageVState extends State<VideoPageV> {
           ? _fullscreen()
           : MediaS.i.playOrPause(),
       video: MediaS.i.buildVideoView(),
-      topLeft: (_) => const BackButton(),
+      topLeft: (_) => const BackButton(color: Colors.white),
+      bottomRight: (_) => Row(
+        children: [
+          IconButton(
+            onPressed: _fullscreen,
+            icon: const Icon(
+              Icons.fullscreen,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
       bottomLeft: (_) => StreamBuilder<bool>(
         stream: MediaS.i.playingStream,
         initialData: MediaS.i.isPlaying,
@@ -186,16 +197,23 @@ class _VideoPageVState extends State<VideoPageV> {
       progressBuilder: (context) => const ProgressV(),
       centerLeft: (_) => const Icon(Icons.lock),
       centerRight: (_) => const Icon(Icons.camera),
+      center: (context, progress) {
+        final duration = MediaS.i.currentDuration;
+        final position = duration * progress;
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.black54,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            '${_formatDuration(position)} / ${_formatDuration(duration)}',
+            style: const TextStyle(color: Colors.white, fontSize: 16),
+          ),
+        );
+      },
       onProgressDragEnd: MediaS.i.onProgressDragEnd,
       onProgressDragUpdate: MediaS.i.onProgressDragUpdate,
-      bottomRight: (_) => Row(
-        children: [
-          IconButton(
-            onPressed: _fullscreen,
-            icon: const Icon(Icons.fullscreen),
-          ),
-        ],
-      ),
     );
   }
 
@@ -260,6 +278,16 @@ class _VideoPageVState extends State<VideoPageV> {
   String _formatCount(int n) {
     if (n >= 10000) return '${(n / 10000).toStringAsFixed(1)}万';
     return n.toString();
+  }
+
+  String _formatDuration(Duration d) {
+    final hours = d.inHours;
+    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    if (hours > 0) {
+      return '${hours.toString().padLeft(2, '0')}:$minutes:$seconds';
+    }
+    return '$minutes:$seconds';
   }
 
   Widget _buildVideoInfo(VideoDetailData detail) {

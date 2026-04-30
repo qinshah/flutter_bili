@@ -21,9 +21,7 @@ dependencies:
     git:
       url: https://gitcode.com/openharmony-sig/flutter_audio_session.git
       ref: br_v0.2.2_ohos
-  fvp:
-    git:
-      url: https://github.com/wang-bin/fvp.git
+  fvp: ^0.36.1
   media_kit:
     git:
       url: https://github.com/Predidit/media-kit.git

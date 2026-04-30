@@ -69,10 +69,21 @@ class _FullScreenVideoVState extends State<FullScreenVideoV> {
         onProgressTapDown: MediaS.i.seekByProgress,
         video: MediaS.i.buildVideoView(),
         onDoubleTapDown: (details) => details.kind == PointerDeviceKind.mouse
-            ? _exitFullScreen(null)
+            ? _exitFullScreen()
             : MediaS.i.playOrPause(),
         onTogglePlay: MediaS.i.playOrPause,
-        topLeft: (_) => const BackButton(),
+        topLeft: (_) => const BackButton(color: Colors.white),
+        bottomRight: (_) => Row(
+          children: [
+            IconButton(
+              onPressed: _exitFullScreen,
+              icon: const Icon(
+                Icons.fullscreen,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
         topRight: (_) => const Row(
           children: [Icon(Icons.info), Icon(Icons.more_vert)],
         ),
@@ -80,6 +91,21 @@ class _FullScreenVideoVState extends State<FullScreenVideoV> {
         centerLeft: (_) => const Icon(Icons.lock),
         centerRight: (_) => const Icon(Icons.camera),
         progressBuilder: (_) => const ProgressV(),
+        center: (context, progress) {
+          final duration = MediaS.i.currentDuration;
+          final position = duration * progress;
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.black54,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              '${_formatDuration(position)} / ${_formatDuration(duration)}',
+              style: const TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          );
+        },
         bottomLeft: (_) => StreamBuilder<bool>(
           stream: MediaS.i.playingStream,
           initialData: MediaS.i.isPlaying,
@@ -91,21 +117,13 @@ class _FullScreenVideoVState extends State<FullScreenVideoV> {
             onPressed: MediaS.i.playOrPause,
           ),
         ),
-        bottomRight: (_) => Row(
-          children: [
-            IconButton(
-              onPressed: () => _exitFullScreen(null),
-              icon: const Icon(Icons.fullscreen_exit),
-            ),
-          ],
-        ),
         onProgressDragEnd: MediaS.i.onProgressDragEnd,
         onProgressDragUpdate: MediaS.i.onProgressDragUpdate,
       ),
     );
   }
 
-  Future<void> _exitFullScreen(_) async {
+  Future<void> _exitFullScreen() async {
     context.pop();
     await SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.edgeToEdge,
@@ -114,5 +132,15 @@ class _FullScreenVideoVState extends State<FullScreenVideoV> {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
+  }
+
+  String _formatDuration(Duration d) {
+    final hours = d.inHours;
+    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    if (hours > 0) {
+      return '${hours.toString().padLeft(2, '0')}:$minutes:$seconds';
+    }
+    return '$minutes:$seconds';
   }
 }
