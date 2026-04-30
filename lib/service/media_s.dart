@@ -87,6 +87,19 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
     return _fvpBufferingCtrl?.stream ?? const Stream<bool>.empty();
   }
 
+  double  getAspectRatio() {
+    var aspectRatio = 16 / 9;
+    if (_mkPlayer != null) {
+      final aspect = _mkPlayer!.platform?.state.videoParams.aspect;
+      if (aspect != null) {
+        aspectRatio = aspect;
+      }
+    } else if (_fvpController != null) {
+      aspectRatio = _fvpController!.value.aspectRatio;
+    }
+    return aspectRatio;
+  }
+
   // ── lifecycle ───────────────────────────────────────────────────────────────
 
   Future<void> initAndLoad(

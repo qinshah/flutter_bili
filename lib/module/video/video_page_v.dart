@@ -161,6 +161,7 @@ class _VideoPageVState extends State<VideoPageV> {
 
   Widget _buildPlayer() {
     return UVideoPlayer(
+      aspectRatio: MediaS.i.getAspectRatio(),
       onProgressTapDown: MediaS.i.seekByProgress,
       onTogglePlay: MediaS.i.playOrPause,
       onDoubleTapDown: (details) => details.kind == PointerDeviceKind.mouse
@@ -407,7 +408,7 @@ class _VideoPageVState extends State<VideoPageV> {
           }
 
           if (service.detailState is Error) {
-            final err = service.detailState as Error;
+            final err = service.detailState! as Error;
             // Try to parse error code from message
             final msg = mapErrorCode(null, err.message);
             return _buildErrorState(msg, onRetry: _loadDetail);

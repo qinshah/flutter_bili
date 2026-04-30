@@ -66,6 +66,7 @@ class _FullScreenVideoVState extends State<FullScreenVideoV> {
     return Scaffold(
       appBar: AppBar(toolbarHeight: 0),
       body: UVideoPlayer(
+        aspectRatio: MediaS.i.getAspectRatio(),
         onProgressTapDown: MediaS.i.seekByProgress,
         video: MediaS.i.buildVideoView(),
         onDoubleTapDown: (details) => details.kind == PointerDeviceKind.mouse
