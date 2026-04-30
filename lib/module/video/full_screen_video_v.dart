@@ -1,7 +1,11 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bili/module/video/model/play_url_model.dart';
 import 'package:flutter_bili/module/video/model/video_quality_m.dart';
 import 'package:flutter_bili/module/video/video_page_vm.dart';
+import 'package:flutter_bili/module/video/widget/progress_v.dart';
 import 'package:flutter_bili/service/media_s.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -62,24 +66,53 @@ class _FullScreenVideoVState extends State<FullScreenVideoV> {
     return Scaffold(
       appBar: AppBar(toolbarHeight: 0),
       body: UVideoPlayer(
+        onProgressTapDown: MediaS.i.seekByProgress,
         video: MediaS.i.buildVideoView(),
+        onDoubleTapDown: (details) => details.kind == PointerDeviceKind.mouse
+            ? _exitFullScreen(null)
+            : MediaS.i.playOrPause(),
+        onTogglePlay: MediaS.i.playOrPause,
         topLeft: (_) => const BackButton(),
-        topRight: (_) =>
-            const Row(children: [Icon(Icons.info), Icon(Icons.more_vert)]),
+        topRight: (_) => const Row(
+          children: [Icon(Icons.info), Icon(Icons.more_vert)],
+        ),
         topCenter: (_) => const Center(child: Text('标题')),
         centerLeft: (_) => const Icon(Icons.lock),
         centerRight: (_) => const Icon(Icons.camera),
-        bottomCenter: (_) => const LinearProgressIndicator(),
-        bottomLeft: (_) => const Row(children: [Icon(Icons.play_arrow)]),
+        progressBuilder: (_) => const ProgressV(),
+        bottomLeft: (_) => StreamBuilder<bool>(
+          stream: MediaS.i.playingStream,
+          initialData: MediaS.i.isPlaying,
+          builder: (_, snap) => IconButton(
+            icon: Icon(
+              snap.data ?? false ? Icons.pause : Icons.play_arrow,
+              color: Colors.white,
+            ),
+            onPressed: MediaS.i.playOrPause,
+          ),
+        ),
         bottomRight: (_) => Row(
           children: [
             IconButton(
-              onPressed: context.pop,
+              onPressed: () => _exitFullScreen(null),
               icon: const Icon(Icons.fullscreen_exit),
             ),
           ],
         ),
+        onProgressDragEnd: MediaS.i.onProgressDragEnd,
+        onProgressDragUpdate: MediaS.i.onProgressDragUpdate,
       ),
     );
+  }
+
+  Future<void> _exitFullScreen(_) async {
+    context.pop();
+    await SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.edgeToEdge,
+    );
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
   }
 }

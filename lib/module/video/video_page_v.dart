@@ -1,7 +1,11 @@
+import 'dart:ui';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bili/core/routes.dart';
 import 'package:flutter_bili/module/video/model/video_quality_m.dart';
+import 'package:flutter_bili/module/video/widget/progress_v.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:u_widget/u_widget.dart';
@@ -13,7 +17,6 @@ import 'model/play_url_model.dart';
 import 'model/related_video.dart';
 import 'model/video_detail.dart';
 import 'video_page_vm.dart';
-import 'widget/video_player_v.dart';
 
 // ─── Error code mapping ───────────────────────────────────────────────────────
 
@@ -158,29 +161,56 @@ class _VideoPageVState extends State<VideoPageV> {
 
   Widget _buildPlayer() {
     return UVideoPlayer(
+      onProgressTapDown: MediaS.i.seekByProgress,
+      onTogglePlay: MediaS.i.playOrPause,
+      onDoubleTapDown: (details) => details.kind == PointerDeviceKind.mouse
+          ? _fullscreen()
+          : MediaS.i.playOrPause(),
       video: MediaS.i.buildVideoView(),
       topLeft: (_) => const BackButton(),
-      topRight: (_) =>
-          const Row(children: [Icon(Icons.info), Icon(Icons.more_vert)]),
+      bottomLeft: (_) => StreamBuilder<bool>(
+        stream: MediaS.i.playingStream,
+        initialData: MediaS.i.isPlaying,
+        builder: (_, snap) => IconButton(
+          icon: Icon(
+            snap.data ?? false ? Icons.pause : Icons.play_arrow,
+            color: Colors.white,
+          ),
+          onPressed: MediaS.i.playOrPause,
+        ),
+      ),
+      topRight: (_) => const Row(
+        children: [Icon(Icons.info), Icon(Icons.more_vert)],
+      ),
       topCenter: (_) => const Center(child: Text('标题')),
+      progressBuilder: (context) => const ProgressV(),
       centerLeft: (_) => const Icon(Icons.lock),
       centerRight: (_) => const Icon(Icons.camera),
-      bottomCenter: (_) => const LinearProgressIndicator(),
-      bottomLeft: (_) => const Row(children: [Icon(Icons.play_arrow)]),
+      onProgressDragEnd: MediaS.i.onProgressDragEnd,
+      onProgressDragUpdate: MediaS.i.onProgressDragUpdate,
       bottomRight: (_) => Row(
         children: [
           IconButton(
-            onPressed: () async {
-              await context.push(
-                Routes.fullscreenVideo,
-                extra: widget.bvid,
-              );
-            },
+            onPressed: _fullscreen,
             icon: const Icon(Icons.fullscreen),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _fullscreen() async {
+    await context.push(
+      Routes.fullscreenVideo,
+      extra: widget.bvid,
+    );
+    await SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.immersiveSticky,
+    );
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
   }
 
   Widget _buildOwnerRow(VideoDetailData detail) {
@@ -676,26 +706,5 @@ class _VideoPageVState extends State<VideoPageV> {
       );
     }
     return const SizedBox.shrink();
-  }
-}
-
-// ─── Fullscreen player ────────────────────────────────────────────────────────
-
-class _FullscreenPlayer extends StatelessWidget {
-  const _FullscreenPlayer({this.playUrl, this.onQualityTap});
-
-  final PlayUrlModel? playUrl;
-  final VoidCallback? onQualityTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: VideoPlayerV(
-        onQualityTap: onQualityTap,
-        onFullscreen: () => Navigator.pop(context),
-        isFullscreen: true,
-      ),
-    );
   }
 }

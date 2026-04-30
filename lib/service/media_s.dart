@@ -151,11 +151,7 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
     PlayUrlModel playUrl,
     Map<String, String> headers,
   ) async {
-    _mkPlayer = Player(
-      configuration: const PlayerConfiguration(
-        bufferSize: 32 * 1024 * 1024, // 32MB buffer
-      ),
-    );
+    _mkPlayer = Player();
     _mkController = VideoController(_mkPlayer!);
 
     final audioUrl = playUrl.dash?.audio?.first.baseUrl;
@@ -164,14 +160,13 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
       if (nativePlayer != null) {
         await nativePlayer.waitForPlayerInitialization;
         await _mkPlayer!.setAudioTrack(AudioTrack.auto());
-        final processedAudioUrl = audioUrl.replaceAll(':', '\\:');
+        final processedAudioUrl = audioUrl.replaceAll(':', r'\:');
         await nativePlayer.setProperty('audio-files', processedAudioUrl);
       }
     }
 
     await _mkPlayer!.open(
       Media(videoUrl, httpHeaders: headers),
-      play: true,
     );
   }
 
@@ -187,8 +182,6 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
     _fvpController!.addListener(_onFvpUpdate);
     _onFvpUpdate();
     await _fvpController!.play();
-    // TODO(fvp-dash): fvp does not support separate DASH audio tracks
-    // via the standard video_player API. Video-only for now.
   }
 
   void _initFvpStreams() {
@@ -304,6 +297,12 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
     }
   }
 
+  Future<void> seekByProgress(double progress) async {
+    final duration = currentDuration;
+    final position = duration * progress;
+    await seek(position);
+  }
+
   @override
   Future<void> seek(Duration position) async {
     if (_currentLibrary == PlayerLibraryM.mediaKit && _mkPlayer != null) {
@@ -331,5 +330,27 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
       return FvpVideoV(controller: _fvpController!);
     }
     return const SizedBox.shrink();
+  }
+
+  double? _draggingProgress = 0;
+
+  double? get draggingProgress => _draggingProgress;
+
+  void onProgressDragUpdate(DragUpdateDetails details, double progress) {
+    final curProgress =
+        _draggingProgress ??
+        currentPosition.inMilliseconds / currentDuration.inMilliseconds;
+    final newP = curProgress + details.delta.dx / 500;
+    _draggingProgress = newP.clamp(0, 1);
+    notifyListeners();
+  }
+
+  Future<void> onProgressDragEnd(
+    DragEndDetails details,
+    double progress,
+  ) async {
+    await seek(currentDuration * (_draggingProgress ?? progress));
+    _draggingProgress = null;
+    notifyListeners();
   }
 }
