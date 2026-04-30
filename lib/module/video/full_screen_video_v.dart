@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -126,13 +127,17 @@ class _FullScreenVideoVState extends State<FullScreenVideoV> {
 
   Future<void> _exitFullScreen() async {
     context.pop();
-    await SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.edgeToEdge,
+    unawaited(
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.edgeToEdge,
+      ),
     );
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    unawaited(
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]),
+    );
   }
 
   String _formatDuration(Duration d) {

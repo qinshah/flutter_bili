@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -219,17 +220,32 @@ class _VideoPageVState extends State<VideoPageV> {
   }
 
   Future<void> _fullscreen() async {
+    unawaited(
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]),
+    );
+    unawaited(
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.immersiveSticky,
+      ),
+    );
     await context.push(
       Routes.fullscreenVideo,
       extra: widget.bvid,
     );
-    await SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.immersiveSticky,
+    unawaited(
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]),
     );
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
+    unawaited(
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.edgeToEdge,
+      ),
+    );
   }
 
   Widget _buildOwnerRow(VideoDetailData detail) {

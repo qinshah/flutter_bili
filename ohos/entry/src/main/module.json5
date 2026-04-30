@@ -1,4 +1,3 @@
-
 {
   "module": {
     "name": "entry",
@@ -21,6 +20,11 @@
         "startWindowIcon": "$media:icon",
         "startWindowBackground": "$color:start_window_background",
         "exported": true,
+        "backgroundModes": [
+          "audioPlayback"
+        ],
+        "orientation": "auto_rotation_unspecified",
+        "preferMultiWindowOrientation": "landscape_auto",
         "skills": [
           {
             "entities": [
@@ -34,7 +38,18 @@
       }
     ],
     "requestPermissions": [
-      {"name" :  "ohos.permission.INTERNET"},
+      {
+        "name": "ohos.permission.INTERNET"
+      },
+      {
+        "name": "ohos.permission.VIBRATE",
+        "usedScene": {
+          "abilities": [
+            "EntryAbility"
+          ],
+          "when": "inuse",
+        },
+      },
     ]
   }
 }
