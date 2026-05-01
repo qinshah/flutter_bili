@@ -193,8 +193,36 @@ class _VideoPageVState extends State<VideoPageV> {
           onPressed: MediaS.i.playOrPause,
         ),
       ),
-      topRight: (_) => const Row(
-        children: [Icon(Icons.info), Icon(Icons.more_vert)],
+      topRight: (_) => Row(
+        children: [
+          IconButton(
+            onPressed: () async {
+              final jsonInfo = (await MediaS.i.getPlayingInfo()).toJson();
+              if (!mounted) return;
+              await showDialog<void>(
+                context: context,
+                builder: (ctx) => SimpleDialog(
+                  title: const Text('播放信息'),
+                  children: [
+                    for (final entry in jsonInfo.entries)
+                      ListTile(
+                        title: Text(entry.key),
+                        subtitle: Text(entry.value.toString()),
+                      ),
+                  ],
+                ),
+              );
+            },
+            icon: const Icon(
+              Icons.info,
+              color: Colors.white,
+            ),
+          ),
+          const Icon(
+            Icons.more_vert,
+            color: Colors.white,
+          ),
+        ],
       ),
       topCenter: (_) => const Center(child: Text('标题')),
       progressBuilder: (context) => const ProgressV(),
@@ -240,7 +268,7 @@ class _VideoPageVState extends State<VideoPageV> {
             width: 36,
             height: 36,
             fit: BoxFit.cover,
-            errorWidget: (_, __, ___) => const Icon(Icons.person, size: 36),
+            errorWidget: (_, _, _) => const Icon(Icons.person, size: 36),
           ),
         ),
         const SizedBox(width: 8),

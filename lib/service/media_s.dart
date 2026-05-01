@@ -1,14 +1,18 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bili/core/http/video_http.dart';
 import 'package:flutter_bili/module/setting/model/setting_m.dart';
 import 'package:flutter_bili/module/video/model/play_url_model.dart';
+import 'package:flutter_bili/module/video/model/playing_info_m.dart';
+import 'package:flutter_bili/module/video/model/video_quality_m.dart';
 import 'package:flutter_bili/module/video/widget/fvp_video_v.dart';
 import 'package:flutter_bili/module/video/widget/media_kit_video_v.dart';
 import 'package:flutter_bili/service/storage_s.dart';
 import 'package:fvp/fvp.dart' as fvp;
+import 'package:fvp/mdk.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:video_player/video_player.dart';
@@ -29,7 +33,19 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
       MediaKit.ensureInitialized();
       _mediaKitInitialized = true;
     } else if (playerLibrary == PlayerLibraryM.fvp && !_fvpInitialized) {
-      fvp.registerWith();
+      fvp.registerWith(
+        options: {
+          'video.decoders': Platform.operatingSystem == 'ohos'
+              ? ['OH:mime=1:sw=0']
+              : [
+                  'VideoToolbox',
+                  'MediaCodec',
+                  'D3D11',
+                  'NVDEC',
+                  'FFmpeg',
+                ],
+        },
+      );
       _fvpInitialized = true;
     }
   }
@@ -49,6 +65,9 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
   Timer? _heartbeatTimer;
   String _bvid = '';
   int _cid = 0;
+
+  // ── play url ────────────────────────────────────────────────────────────────
+  PlayUrlModel? _playUrl;
 
   // ── state ───────────────────────────────────────────────────────────────────
   PlayerLibraryM _currentLibrary = PlayerLibraryM.mediaKit;
@@ -87,7 +106,7 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
     return _fvpBufferingCtrl?.stream ?? const Stream<bool>.empty();
   }
 
-  double  getAspectRatio() {
+  double getAspectRatio() {
     var aspectRatio = 16 / 9;
     if (_mkPlayer != null) {
       final aspect = _mkPlayer!.platform?.state.videoParams.aspect;
@@ -107,6 +126,7 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
     required String bvid,
     required int cid,
   }) async {
+    _playUrl = playUrl;
     _bvid = bvid;
     _cid = cid;
 
@@ -132,7 +152,7 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
       }
       _startHeartbeat();
       notifyListeners();
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('MediaS initAndLoad failed: $e');
     }
   }
@@ -140,6 +160,7 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
   Future<void> disposePlayer() async {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;
+    _playUrl = null;
 
     if (_mkPlayer != null) {
       await _mkPlayer!.dispose();
@@ -155,6 +176,82 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
     }
 
     notifyListeners();
+  }
+
+  Future<PlayingInfoM> getPlayingInfo() async {
+    if (_currentLibrary == PlayerLibraryM.mediaKit && _mkPlayer != null) {
+      return _getMediaKitPlayingInfo();
+    } else if (_fvpController != null) {
+      return _getFvpPlayingInfo();
+    }
+    return PlayingInfoM();
+  }
+
+  Future<PlayingInfoM> _getMediaKitPlayingInfo() async {
+    final state = _mkPlayer!.state;
+    final videoParams = state.videoParams;
+
+    String? decoder;
+    String? codec;
+    var frameRate = 0.0;
+
+    final nativePlayer = _mkPlayer!.platform as NativePlayer?;
+    if (nativePlayer != null) {
+      try {
+        final hwdec = await nativePlayer.getProperty('hwdec-current');
+        if (hwdec.isNotEmpty && hwdec != 'no') {
+          decoder = hwdec;
+        }
+        final videoCodec = await nativePlayer.getProperty('video-codec');
+        if (videoCodec.isNotEmpty) {
+          codec = videoCodec;
+        }
+        final fps = await nativePlayer.getProperty('container-fps');
+        if (fps.isNotEmpty) {
+          frameRate = double.tryParse(fps) ?? 0.0;
+        }
+      } on Exception catch (_) {}
+    }
+
+    return PlayingInfoM(
+      width: videoParams.w ?? state.width,
+      height: videoParams.h ?? state.height,
+      codec: codec,
+      decoder: decoder,
+      quality: _getQualityName(),
+      pixelFormat: videoParams.pixelformat,
+      frameRate: frameRate > 0 ? frameRate : null,
+    );
+  }
+
+  PlayingInfoM _getFvpPlayingInfo() {
+    final value = _fvpController!.value;
+    final mediaInfo = _fvpController!.getMediaInfo();
+    final videoStream = mediaInfo?.video?.firstOrNull;
+    final videoCodec = videoStream?.codec;
+
+    return PlayingInfoM(
+      width: videoCodec?.width ?? value.size.width.toInt(),
+      height: videoCodec?.height ?? value.size.height.toInt(),
+      codec: videoCodec?.codec.isNotEmpty ?? false ? videoCodec?.codec : null,
+      quality: _getQualityName(),
+      pixelFormat: videoCodec?.formatName,
+      frameRate: videoCodec != null && videoCodec.frameRate > 0
+          ? videoCodec.frameRate
+          : null,
+    );
+  }
+
+  String? _getQualityName() {
+    final quality = _playUrl?.quality;
+    if (quality == null) return null;
+    return VideoQualityM.values
+        .cast<VideoQualityM?>()
+        .firstWhere(
+          (e) => e!.qn == quality,
+          orElse: () => null,
+        )
+        ?.name;
   }
 
   // ── media_kit backend ───────────────────────────────────────────────────────
@@ -196,6 +293,7 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
       httpHeaders: headers,
     );
     await _fvpController!.initialize();
+    // await _fvpController!.setProgram();
 
     final audioUrl = playUrl.dash?.audio?.first.baseUrl;
     if (audioUrl != null) _fvpController!.setExternalAudio(audioUrl);
