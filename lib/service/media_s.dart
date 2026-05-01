@@ -309,8 +309,8 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
       _fvpController!.setVideoDecoders([
         'OH',
         'ohcodec:copy=1',
-        'FFmpeg',
-        'dav1d',
+        // 'FFmpeg',
+        // 'dav1d',
       ]);
     }
     final audioUrl = playUrl.dash?.audio?.first.baseUrl;

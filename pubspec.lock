@@ -333,12 +333,11 @@ packages:
   fvp:
     dependency: "direct main"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "10c0b0cf45568fba5baf1cc4c132d7a5654d4f32"
-      url: "https://github.com/wang-bin/fvp.git"
-    source: git
-    version: "0.36.1"
+      name: fvp
+      sha256: "23274616c8ba8e18b9e07d95c5a52c026aa5d0bb240bd24a04b181dd9c2c8b66"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.36.2"
   glob:
     dependency: transitive
     description:
@@ -605,7 +604,7 @@ packages:
     source: hosted
     version: "0.1.1"
   meta:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: meta
       sha256: e3641ec5d63ebf0d9b41bd43201a66e3fc79a65db5f61fc181f04cd27aab950c
@@ -814,6 +813,15 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.0.2"
+  rinf:
+    dependency: "direct main"
+    description:
+      path: flutter_package
+      ref: ohos_fix
+      resolved-ref: "8e2410af155dc7f71e3f47fdc16e65ad15a6eda8"
+      url: "https://github.com/qinshah/rinf.git"
+    source: git
+    version: "8.10.0"
   rxdart:
     dependency: transitive
     description:
@@ -1035,6 +1043,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.5.2"
+  tuple:
+    dependency: "direct main"
+    description:
+      name: tuple
+      sha256: a97ce2013f240b2f3807bcbaf218765b6f301c3eff91092bcfa23a039e7dd151
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.0.2"
   typed_data:
     dependency: transitive
     description:

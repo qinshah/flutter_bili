@@ -5,3 +5,4 @@ analyzer:
     unreachable_switch_default: ignore
     public_member_api_docs: ignore
     sort_constructors_first: ignore
+    eol_at_end_of_file: ignore
