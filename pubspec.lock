@@ -335,7 +335,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "66bc3e3d59b5934288d6e7d2238364c19eef9d09"
+      resolved-ref: "10c0b0cf45568fba5baf1cc4c132d7a5654d4f32"
       url: "https://github.com/wang-bin/fvp.git"
     source: git
     version: "0.36.1"

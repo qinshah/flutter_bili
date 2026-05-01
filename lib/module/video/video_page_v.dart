@@ -130,7 +130,12 @@ class _VideoPageVState extends State<VideoPageV> {
       topLeft: (_) => const BackButton(color: Colors.white),
       bottomRight: (_) => Row(
         children: [
-          Builder(builder: (context) => QualityButtonV(bvid: widget.bvid)),
+          Builder(
+            builder: (context) => QualityButtonV(
+              bvid: widget.bvid,
+              vm: context.read<VideoPageVm>(),
+            ),
+          ),
           IconButton(
             onPressed: _fullScreen,
             icon: const Icon(

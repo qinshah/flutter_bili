@@ -2,24 +2,21 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bili/module/video/video_page_vm.dart';
 import 'package:flutter_bili/module/video/widget/progress_v.dart';
 import 'package:flutter_bili/module/video/widget/quality_button_v.dart';
 import 'package:flutter_bili/service/media_s.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:u_service/u_service.dart';
 import 'package:u_widget/u_widget.dart';
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-class FullScreenVideoV extends StatefulWidget {
+class FullScreenVideoV extends StatelessWidget {
   const FullScreenVideoV({required this.bvid, super.key});
 
   final String bvid;
 
-  @override
-  State<FullScreenVideoV> createState() => _FullScreenVideoVState();
-}
-
-class _FullScreenVideoVState extends State<FullScreenVideoV> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,7 +28,7 @@ class _FullScreenVideoVState extends State<FullScreenVideoV> {
         onProgressTapDown: MediaS.i.seekByProgress,
         video: MediaS.i.buildVideoView(),
         onDoubleTapDown: (details) => details.kind == PointerDeviceKind.mouse
-            ? _exitFullScreen()
+            ? _exitFullScreen(context)
             : MediaS.i.playOrPause(),
         onTogglePlay: MediaS.i.playOrPause,
         topLeft: (_) => const BackButton(color: Colors.white),
@@ -70,9 +67,12 @@ class _FullScreenVideoVState extends State<FullScreenVideoV> {
         ),
         bottomRight: (_) => Row(
           children: [
-            QualityButtonV(bvid: widget.bvid),
+            QualityButtonV(
+              bvid: bvid,
+              vm: context.read<VideoPageVm>(),
+            ),
             IconButton(
-              onPressed: _exitFullScreen,
+              onPressed: () => _exitFullScreen(context),
               icon: const Icon(
                 Icons.fullscreen,
                 color: Colors.white,
@@ -84,7 +84,7 @@ class _FullScreenVideoVState extends State<FullScreenVideoV> {
     );
   }
 
-  Future<void> _exitFullScreen() async {
+  Future<void> _exitFullScreen(BuildContext context) async {
     context.pop();
     await USystemS.exitFullScreen();
   }

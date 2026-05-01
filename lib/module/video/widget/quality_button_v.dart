@@ -2,35 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bili/module/video/model/video_quality_m.dart';
 import 'package:flutter_bili/module/video/video_page_vm.dart';
 import 'package:flutter_bili/service/media_s.dart';
-import 'package:provider/provider.dart';
 
-class QualityButtonV extends StatefulWidget {
-  const QualityButtonV({required this.bvid, super.key});
+class QualityButtonV extends StatelessWidget {
+  const QualityButtonV({required this.bvid, required this.vm, super.key});
 
   final String bvid;
 
-  @override
-  State<QualityButtonV> createState() => _QualityButtonVState();
-}
+  final VideoPageVm vm;
 
-class _QualityButtonVState extends State<QualityButtonV> {
   Future<void> _changeQuality(int qn) async {
-    final service = context.read<VideoPageVm>();
     final position = MediaS.i.currentPosition;
-    await service.loadPlayUrl(widget.bvid, qn: qn);
-    if (!mounted) return;
-    final cid = service.getCid();
-    if (service.playUrl == null || cid == null) return;
+    await vm.loadPlayUrl(bvid, qn: qn);
+    final cid = vm.getCid();
+    if (vm.playUrl == null || cid == null) return;
     await MediaS.i.initAndLoad(
-      service.playUrl!,
-      bvid: widget.bvid,
+      vm.playUrl!,
+      bvid: bvid,
       cid: cid,
       startPosition: position,
     );
   }
 
-  String _getQualityLabel(int qn, VideoPageVm service) {
-    final desc = service.getQualityDesc(qn);
+  String _getQualityLabel(int qn, VideoPageVm vm) {
+    final desc = vm.getQualityDesc(qn);
     if (desc?.isNotEmpty ?? false) return desc!;
     final videoQuality = VideoQualityM.values.firstWhere(
       (e) => e.qn == qn,
@@ -41,13 +35,12 @@ class _QualityButtonVState extends State<QualityButtonV> {
 
   @override
   Widget build(BuildContext context) {
-    final service = context.read<VideoPageVm>();
-    final qualities = service.playUrl?.acceptQuality ?? [];
+    final qualities = vm.playUrl?.acceptQuality ?? [];
     if (qualities.isEmpty) return const SizedBox.shrink();
 
-    final currentQn = service.currentQn;
+    final currentQn = vm.currentQn;
     final currentLabel = currentQn != null
-        ? _getQualityLabel(currentQn, service)
+        ? _getQualityLabel(currentQn, vm)
         : '画质';
 
     return PopupMenuButton<int>(
@@ -63,7 +56,7 @@ class _QualityButtonVState extends State<QualityButtonV> {
             value: qn,
             onTap: () => _changeQuality(qn),
             child: Text(
-              _getQualityLabel(qn, service),
+              _getQualityLabel(qn, vm),
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 13,
