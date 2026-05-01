@@ -36,6 +36,7 @@ class QrCodePoller {
               refreshToken: data['refresh_token'] as String? ?? '',
               sessdata: _extractSessdata(data),
               csrf: _extractCsrf(data),
+              cookies: _buildCookieString(data),
             );
             print('保存登录数据成功');
           } catch (e) {
@@ -80,5 +81,20 @@ class QrCodePoller {
       }
     }
     return '';
+  }
+
+  /// 将所有 cookie 拼接为 Cookie 请求头格式，供后续请求直接注入
+  String _buildCookieString(Map<String, dynamic> data) {
+    final cookies = data['cookie_info']?['cookies'] as List?;
+    if (cookies == null || cookies.isEmpty) return '';
+    final parts = <String>[];
+    for (final c in cookies) {
+      final name = c['name'] as String?;
+      final value = c['value'] as String?;
+      if (name != null && value != null) {
+        parts.add('$name=$value');
+      }
+    }
+    return parts.join('; ');
   }
 }

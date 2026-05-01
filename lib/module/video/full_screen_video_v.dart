@@ -2,13 +2,10 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bili/module/video/model/play_url_model.dart';
-import 'package:flutter_bili/module/video/model/video_quality_m.dart';
-import 'package:flutter_bili/module/video/video_page_vm.dart';
 import 'package:flutter_bili/module/video/widget/progress_v.dart';
+import 'package:flutter_bili/module/video/widget/quality_button_v.dart';
 import 'package:flutter_bili/service/media_s.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import 'package:u_service/u_service.dart';
 import 'package:u_widget/u_widget.dart';
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -23,50 +20,13 @@ class FullScreenVideoV extends StatefulWidget {
 }
 
 class _FullScreenVideoVState extends State<FullScreenVideoV> {
-  final int _currentCid = 0;
-  // ── Quality switching ───────────────────────────────────────────────────────
-
-  Future<void> _showQualityPicker(PlayUrlModel playUrlM) async {
-    final service = context.read<VideoPageVm>();
-    final qualities = playUrlM.acceptQuality ?? [];
-    if (qualities.isEmpty) return;
-    await showModalBottomSheet<void>(
-      context: context,
-      builder: (ctx) => ListView(
-        shrinkWrap: true,
-        children: qualities.map((qn) {
-          final videoQuality = VideoQualityM.values.firstWhere(
-            (e) => e.qn == qn,
-            orElse: () => VideoQualityM.a1080p30,
-          );
-          final label = videoQuality.qn == qn
-              ? videoQuality.name
-              : qn.toString();
-          return ListTile(
-            title: Text(label),
-            onTap: () async {
-              Navigator.pop(ctx);
-              await service.loadPlayUrl(widget.bvid, _currentCid, qn: qn);
-              if (!mounted) return;
-              if (service.playUrl != null) {
-                await MediaS.i.initAndLoad(
-                  service.playUrl!,
-                  bvid: widget.bvid,
-                  cid: _currentCid,
-                );
-              }
-            },
-          );
-        }).toList(),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(toolbarHeight: 0),
       body: UVideoPlayer(
+        onProgressDragEnd: MediaS.i.onProgressDragEnd,
+        onProgressDragUpdate: MediaS.i.onProgressDragUpdate,
         aspectRatio: MediaS.i.getAspectRatio(),
         onProgressTapDown: MediaS.i.seekByProgress,
         video: MediaS.i.buildVideoView(),
@@ -75,17 +35,6 @@ class _FullScreenVideoVState extends State<FullScreenVideoV> {
             : MediaS.i.playOrPause(),
         onTogglePlay: MediaS.i.playOrPause,
         topLeft: (_) => const BackButton(color: Colors.white),
-        bottomRight: (_) => Row(
-          children: [
-            IconButton(
-              onPressed: _exitFullScreen,
-              icon: const Icon(
-                Icons.fullscreen,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
         topRight: (_) => const Row(
           children: [Icon(Icons.info), Icon(Icons.more_vert)],
         ),
@@ -119,8 +68,18 @@ class _FullScreenVideoVState extends State<FullScreenVideoV> {
             onPressed: MediaS.i.playOrPause,
           ),
         ),
-        onProgressDragEnd: MediaS.i.onProgressDragEnd,
-        onProgressDragUpdate: MediaS.i.onProgressDragUpdate,
+        bottomRight: (_) => Row(
+          children: [
+            QualityButtonV(bvid: widget.bvid),
+            IconButton(
+              onPressed: _exitFullScreen,
+              icon: const Icon(
+                Icons.fullscreen,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

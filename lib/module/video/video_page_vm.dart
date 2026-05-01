@@ -16,6 +16,8 @@ class VideoPageVm extends ChangeNotifier {
   LoadingState? _detailState;
   LoadingState? _playUrlState;
 
+  int? getCid() => _detail?.pages[_selectedPage].cid;
+
   VideoDetailData? get detail => _detail;
   PlayUrlModel? get playUrl => _playUrl;
   int get selectedPage => _selectedPage;
@@ -52,11 +54,18 @@ class VideoPageVm extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadPlayUrl(String bvid, int cid, {int? qn}) async {
+  Future<void> loadPlayUrl(String bvid, {int? qn}) async {
     _playUrlState = null;
     notifyListeners();
 
-    final result = await VideoHttp.videoUrl(bvid: bvid, cid: cid, qn: qn);
+    final cid = getCid();
+    if (cid == null) return;
+
+    final result = await VideoHttp.videoUrl(
+      bvid: bvid,
+      cid: cid,
+      qn: qn,
+    );
     _playUrlState = result;
 
     if (result is Success<PlayUrlModel>) {
@@ -67,12 +76,9 @@ class VideoPageVm extends ChangeNotifier {
     notifyListeners();
   }
 
-  void selectPage(int index) {
+  Future<void> selectPage(int index) async {
     if (_detail == null || index < 0 || index >= _detail!.pages.length) return;
     _selectedPage = index;
     notifyListeners();
-
-    final page = _detail!.pages[index];
-    loadPlayUrl(_detail!.bvid, page.cid);
   }
 }

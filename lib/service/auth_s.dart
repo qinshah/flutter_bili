@@ -30,6 +30,7 @@ class AuthS extends ChangeNotifier {
     required String sessdata,
     required String csrf,
     DateTime? expiresAt,
+    String? cookies,
   }) async {
     final cred = CredentialM(
       accessKey: accessKey,
@@ -39,6 +40,9 @@ class AuthS extends ChangeNotifier {
       expiresAt: expiresAt ?? DateTime.now().add(const Duration(days: 30)),
     );
     await _credentialBox.put('main', cred);
+    if (cookies != null && cookies.isNotEmpty) {
+      await StorageS.cacheB.put('loginCookies', cookies);
+    }
     _credentials = cred;
     notifyListeners();
   }
@@ -47,6 +51,7 @@ class AuthS extends ChangeNotifier {
   Future<void> clearCredentials() async {
     // TODO: fixing
     // await _credentialBox.delete('main');
+    // await StorageS.cacheB.delete('loginCookies');
     _credentials = null;
     notifyListeners();
   }

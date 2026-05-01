@@ -3,10 +3,9 @@ import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bili/core/routes.dart';
-import 'package:flutter_bili/module/video/model/video_quality_m.dart';
 import 'package:flutter_bili/module/video/widget/progress_v.dart';
+import 'package:flutter_bili/module/video/widget/quality_button_v.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:u_service/u_service.dart';
@@ -45,8 +44,6 @@ class VideoPageV extends StatefulWidget {
 }
 
 class _VideoPageVState extends State<VideoPageV> {
-  int _currentCid = 0;
-
   // 相关推荐视频
   List<RelatedVideoItem> _relatedVideos = [];
   bool _loadingRelated = false;
@@ -59,30 +56,31 @@ class _VideoPageVState extends State<VideoPageV> {
 
   @override
   void dispose() {
-    MediaS.i.disposePlayer();
+    unawaited(MediaS.i.disposePlayer());
     super.dispose();
   }
 
   // ── Data loading ────────────────────────────────────────────────────────────
 
   Future<void> _loadDetail() async {
-    final service = context.read<VideoPageVm>();
-    await service.loadDetail(widget.bvid);
+    final vm = context.read<VideoPageVm>();
+    await vm.loadDetail(widget.bvid);
     if (!mounted) return;
-    final detail = service.detail;
+    final detail = vm.detail;
     if (detail != null && detail.pages.isNotEmpty) {
-      _currentCid = detail.pages[0].cid;
-      await service.loadPlayUrl(widget.bvid, _currentCid);
+      await vm.loadPlayUrl(widget.bvid);
       if (!mounted) return;
-      if (service.playUrl != null) {
-        MediaS.i.initAndLoad(
-          service.playUrl!,
-          bvid: widget.bvid,
-          cid: _currentCid,
-        );
-      }
+      final cid = vm.getCid();
+      await Future.wait([
+        if (vm.playUrl != null && cid != null)
+          MediaS.i.initAndLoad(
+            vm.playUrl!,
+            bvid: widget.bvid,
+            cid: cid,
+          ),
+        _loadRelatedVideos(),
+      ]);
       // 加载相关推荐
-      _loadRelatedVideos();
     }
   }
 
@@ -108,89 +106,17 @@ class _VideoPageVState extends State<VideoPageV> {
     final service = context.read<VideoPageVm>();
     final detail = service.detail;
     if (detail == null || index < 0 || index >= detail.pages.length) return;
-    _currentCid = detail.pages[index].cid;
     service.selectPage(index);
     // Wait for playUrl to update then reload media
     Future.microtask(() async {
       await Future.delayed(const Duration(milliseconds: 300));
       if (!mounted) return;
       final playUrl = context.read<VideoPageVm>().playUrl;
-      if (playUrl != null) {
-        MediaS.i.initAndLoad(playUrl, bvid: widget.bvid, cid: _currentCid);
-      }
+      final cid = service.getCid();
+      if (playUrl == null || cid == null) return;
+      await MediaS.i.initAndLoad(playUrl, bvid: widget.bvid, cid: cid);
     });
   }
-
-  // ── Quality switching ───────────────────────────────────────────────────────
-
-  Future<void> _changeQuality(int qn) async {
-    final service = context.read<VideoPageVm>();
-    final position = MediaS.i.currentPosition;
-    await service.loadPlayUrl(widget.bvid, _currentCid, qn: qn);
-    if (!mounted) return;
-    if (service.playUrl != null) {
-      await MediaS.i.initAndLoad(
-        service.playUrl!,
-        bvid: widget.bvid,
-        cid: _currentCid,
-        startPosition: position,
-      );
-    }
-  }
-
-  String _getQualityLabel(int qn, VideoPageVm service) {
-    final desc = service.getQualityDesc(qn);
-    if (desc?.isNotEmpty == true) return desc!;
-    final videoQuality = VideoQualityM.values.firstWhere(
-      (e) => e.qn == qn,
-      orElse: () => VideoQualityM.a1080p30,
-    );
-    return videoQuality.qn == qn ? videoQuality.name : qn.toString();
-  }
-
-  Widget _buildQualityButton(PlayUrlModel? playUrl) {
-    final service = context.read<VideoPageVm>();
-    final qualities = playUrl?.acceptQuality ?? [];
-    if (qualities.isEmpty) return const SizedBox.shrink();
-
-    final currentQn = service.currentQn;
-    final currentLabel = currentQn != null
-        ? _getQualityLabel(currentQn, service)
-        : '画质';
-
-    return PopupMenuButton<int>(
-      tooltip: '画质',
-      padding: EdgeInsets.zero,
-      initialValue: currentQn,
-      color: Colors.black.withValues(alpha: 0.8),
-      itemBuilder: (context) {
-        return qualities.map((qn) {
-          return PopupMenuItem<int>(
-            height: 35,
-            padding: const EdgeInsets.only(left: 30),
-            value: qn,
-            onTap: () => _changeQuality(qn),
-            child: Text(
-              _getQualityLabel(qn, service),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-              ),
-            ),
-          );
-        }).toList();
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: Text(
-          currentLabel,
-          style: const TextStyle(color: Colors.white, fontSize: 13),
-        ),
-      ),
-    );
-  }
-
-  // ── Widgets ─────────────────────────────────────────────────────────────────
 
   Widget _buildPlayer() {
     return UVideoPlayer(
@@ -204,7 +130,7 @@ class _VideoPageVState extends State<VideoPageV> {
       topLeft: (_) => const BackButton(color: Colors.white),
       bottomRight: (_) => Row(
         children: [
-          _buildQualityButton(context.read<VideoPageVm>().playUrl),
+          Builder(builder: (context) => QualityButtonV(bvid: widget.bvid)),
           IconButton(
             onPressed: _fullScreen,
             icon: const Icon(
@@ -781,12 +707,7 @@ class _VideoPageVState extends State<VideoPageV> {
               ),
             ),
             TextButton(
-              onPressed: () {
-                final detail = service.detail;
-                if (detail != null) {
-                  service.loadPlayUrl(widget.bvid, _currentCid);
-                }
-              },
+              onPressed: () => service.loadPlayUrl(widget.bvid),
               child: const Text('重试'),
             ),
           ],
