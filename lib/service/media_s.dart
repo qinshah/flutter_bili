@@ -12,71 +12,70 @@ import 'package:flutter_bili/module/video/widget/fvp_video_v.dart';
 import 'package:flutter_bili/module/video/widget/media_kit_video_v.dart';
 import 'package:flutter_bili/service/storage_s.dart';
 import 'package:fvp/fvp.dart' as fvp;
-import 'package:fvp/mdk.dart';
+// 使用MdkVideoPlayerPlatform
+// ignore: implementation_imports
+import 'package:fvp/src/video_player_mdk.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:video_player/video_player.dart';
+import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 
 /// 处理媒体播放服务
 class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
   MediaS._();
 
+  static late final MdkVideoPlayerPlatform _fvpPlatform;
+
   static final MediaS i = MediaS._();
-
-  static bool _mediaKitInitialized = false;
-
-  static bool _fvpInitialized = false;
 
   static void initLib([PlayerLibraryM? playerLibrary]) {
     playerLibrary ??= StorageS.getSetting().playerLibrary;
-    if (playerLibrary == PlayerLibraryM.mediaKit && !_mediaKitInitialized) {
-      MediaKit.ensureInitialized();
-      _mediaKitInitialized = true;
-    } else if (playerLibrary == PlayerLibraryM.fvp && !_fvpInitialized) {
-      fvp.registerWith(
-        options: {
-          'video.decoders': Platform.operatingSystem == 'ohos'
-              ? ['OH:mime=1:sw=0']
-              : [
-                  'VideoToolbox',
-                  'MediaCodec',
-                  'D3D11',
-                  'NVDEC',
-                  'FFmpeg',
-                ],
-        },
-      );
-      _fvpInitialized = true;
+    switch (playerLibrary) {
+      case PlayerLibraryM.mediaKit:
+        MediaKit.ensureInitialized();
+      case PlayerLibraryM.fvp:
+        fvp.registerWith(
+          options: {
+            'video.decoders': [
+              'VideoToolbox',
+              'MediaCodec',
+              'D3D11',
+              'NVDEC',
+              'FFmpeg',
+            ],
+          },
+        );
+        _fvpPlatform = VideoPlayerPlatform.instance as MdkVideoPlayerPlatform;
     }
   }
 
-  // ── media_kit backend ───────────────────────────────────────────────────────
+  // ── media_kit backend ──────────────────────────────────────────────────────
   Player? _mkPlayer;
   VideoController? _mkController;
 
-  // ── fvp backend ─────────────────────────────────────────────────────────────
+  // ── fvp backend ────────────────────────────────────────────────────────────
   VideoPlayerController? _fvpController;
   StreamController<bool>? _fvpPlayingCtrl;
   StreamController<Duration>? _fvpPositionCtrl;
   StreamController<Duration>? _fvpDurationCtrl;
   StreamController<bool>? _fvpBufferingCtrl;
 
-  // ── heartbeat ───────────────────────────────────────────────────────────────
+  // ── heartbeat ──────────────────────────────────────────────────────────────
   Timer? _heartbeatTimer;
   String _bvid = '';
   int _cid = 0;
 
-  // ── play url ────────────────────────────────────────────────────────────────
+  // ── play url ───────────────────────────────────────────────────────────────
   PlayUrlModel? _playUrl;
 
-  // ── state ───────────────────────────────────────────────────────────────────
+  // ── state ──────────────────────────────────────────────────────────────────
   PlayerLibraryM _currentLibrary = PlayerLibraryM.mediaKit;
 
   PlayerLibraryM get currentLibrary => _currentLibrary;
 
   bool get isInitialized => _mkPlayer != null || _fvpController != null;
 
-  // ── unified streams ─────────────────────────────────────────────────────────
+  // ── unified streams ────────────────────────────────────────────────────────
 
   Stream<bool> get playingStream {
     if (_currentLibrary == PlayerLibraryM.mediaKit && _mkPlayer != null) {
@@ -119,7 +118,7 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
     return aspectRatio;
   }
 
-  // ── lifecycle ───────────────────────────────────────────────────────────────
+  // ── lifecycle ──────────────────────────────────────────────────────────────
 
   Future<void> initAndLoad(
     PlayUrlModel playUrl, {
@@ -229,6 +228,9 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
     final mediaInfo = _fvpController!.getMediaInfo();
     final videoStream = mediaInfo?.video?.firstOrNull;
     final videoCodec = videoStream?.codec;
+    // // ignore: invalid_use_of_visible_for_testing_member
+    // final id = _fvpController!.playerId;
+    // final decoder;
 
     return PlayingInfoM(
       width: videoCodec?.width ?? value.size.width.toInt(),
@@ -293,8 +295,14 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
       httpHeaders: headers,
     );
     await _fvpController!.initialize();
-    // await _fvpController!.setProgram();
-
+    if (Platform.operatingSystem == 'ohos') {
+      _fvpController!.setVideoDecoders([
+        'OH',
+        'ohcodec:copy=1',
+        'FFmpeg',
+        'dav1d',
+      ]);
+    }
     final audioUrl = playUrl.dash?.audio?.first.baseUrl;
     if (audioUrl != null) _fvpController!.setExternalAudio(audioUrl);
 
@@ -334,9 +342,9 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
 
   void _startHeartbeat() {
     _heartbeatTimer?.cancel();
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (_) async {
       if (_bvid.isEmpty || _cid == 0) return;
-      VideoHttp.heartBeat(
+      await VideoHttp.heartBeat(
         bvid: _bvid,
         cid: _cid,
         progress: _currentPosition.inSeconds,
@@ -451,7 +459,7 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
     return const SizedBox.shrink();
   }
 
-  double? _draggingProgress = 0;
+  double? _draggingProgress;
 
   double? get draggingProgress => _draggingProgress;
 

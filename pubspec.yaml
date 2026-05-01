@@ -23,7 +23,10 @@ dependencies:
     git:
       url: https://gitcode.com/openharmony-sig/flutter_audio_session.git
       ref: br_v0.2.2_ohos
-  fvp: ^0.36.1
+  # fvp: ^0.36.1
+  fvp:
+    git:
+      url: https://github.com/wang-bin/fvp.git
   media_kit:
     git:
       url: https://github.com/Predidit/media-kit.git
@@ -55,6 +58,7 @@ dependencies:
   crypto: ^3.0.6
   go_router: ^17.2.2
   very_good_analysis: ^10.0.0
+  video_player_platform_interface: ^6.7.0
 
 dependency_overrides:
   path_provider: # 应用可用路径.鸿蒙适配
