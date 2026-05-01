@@ -19,6 +19,7 @@ class AuthS extends ChangeNotifier {
   /// Load credentials from local storage
   void loadLocalCredential() {
     _credentials = _credentialBox.get('main');
+    print(_credentialBox.get('main'));
     notifyListeners();
   }
 
@@ -44,7 +45,8 @@ class AuthS extends ChangeNotifier {
 
   /// Clear credentials from storage and update state
   Future<void> clearCredentials() async {
-    await _credentialBox.delete('main');
+    // TODO: fixing
+    // await _credentialBox.delete('main');
     _credentials = null;
     notifyListeners();
   }

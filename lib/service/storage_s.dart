@@ -1,6 +1,6 @@
+import 'package:flutter_bili/hive_registrar.g.dart';
 import 'package:flutter_bili/module/login/model/credential_m.dart';
 import 'package:flutter_bili/module/setting/model/setting_m.dart';
-import 'package:flutter_bili/hive_registrar.g.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 
 abstract final class StorageS {

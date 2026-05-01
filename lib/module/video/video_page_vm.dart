@@ -12,14 +12,30 @@ class VideoPageVm extends ChangeNotifier {
   VideoDetailData? _detail;
   PlayUrlModel? _playUrl;
   int _selectedPage = 0;
+  int? _currentQn;
   LoadingState? _detailState;
   LoadingState? _playUrlState;
 
   VideoDetailData? get detail => _detail;
   PlayUrlModel? get playUrl => _playUrl;
   int get selectedPage => _selectedPage;
+  int? get currentQn => _currentQn;
   LoadingState? get detailState => _detailState;
   LoadingState? get playUrlState => _playUrlState;
+
+  /// 获取指定 quality code 的画质描述
+  String? getQualityDesc(int qn) {
+    final formats = _playUrl?.supportFormats;
+    if (formats != null) {
+      final format = formats.firstWhere(
+        (e) => e.quality == qn,
+        orElse: () => FormatItem(),
+      );
+      if (format.newDesc?.isNotEmpty == true) return format.newDesc;
+      if (format.displayDesc?.isNotEmpty == true) return format.displayDesc;
+    }
+    return null;
+  }
 
   Future<void> loadDetail(String bvid) async {
     _detailState = null;
@@ -45,6 +61,7 @@ class VideoPageVm extends ChangeNotifier {
 
     if (result is Success<PlayUrlModel>) {
       _playUrl = result.response;
+      _currentQn = _playUrl?.quality;
     }
 
     notifyListeners();

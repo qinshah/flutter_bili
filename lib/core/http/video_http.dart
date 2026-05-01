@@ -15,7 +15,7 @@ abstract final class VideoHttp {
       Api.videoIntro,
       queryParameters: {'bvid': bvid},
     );
-    
+
     if (res.data['code'] == 0) {
       return Success(VideoDetailData.fromJson(res.data['data']));
     } else {
@@ -37,13 +37,14 @@ abstract final class VideoHttp {
       'fourk': 1,
       'fnver': 0,
       'voice_balance': 1,
+      'try_look': 1, // 免登录1080P
     });
 
     final res = await Request().get(
       Api.ugcUrl,
       queryParameters: params,
     );
-    
+
     if (res.data['code'] == 0) {
       return Success(PlayUrlModel.fromJson(res.data['data']));
     } else {
@@ -59,7 +60,7 @@ abstract final class VideoHttp {
       Api.relatedList,
       queryParameters: {'bvid': bvid},
     );
-    
+
     if (res.data['code'] == 0) {
       final List<RelatedVideoItem> list = [];
       for (final item in res.data['data'] as List) {

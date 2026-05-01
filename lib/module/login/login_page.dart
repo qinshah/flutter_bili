@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bili/core/routes.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:provider/provider.dart';
@@ -66,7 +65,7 @@ class _LoginPageState extends State<LoginPage> {
           },
           onSuccess: () async {
             if (mounted) {
-              await context.push(Routes.home);
+              context.pop();
             }
           },
         );
