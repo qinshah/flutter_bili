@@ -367,7 +367,7 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
     } else if (_fvpController != null) {
       return _fvpController!.value.duration;
     }
-    return Duration.zero;
+    return const Duration(seconds: 1); // 防止除数为0
   }
 
   bool get isPlaying {

@@ -7,16 +7,14 @@ class ProgressV extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Duration>(
+    return StreamBuilder(
       stream: MediaS.i.durationStream,
-      initialData: MediaS.i.currentDuration,
       builder: (context, durSnap) {
-        final dur = durSnap.data ?? const Duration(days: 1);
-        return StreamBuilder<Duration>(
+        final dur = durSnap.data ?? MediaS.i.currentDuration;
+        return StreamBuilder(
           stream: MediaS.i.positionStream,
-          initialData: MediaS.i.currentPosition,
           builder: (context, posSnap) {
-            final pos = posSnap.data ?? Duration.zero;
+            final pos = posSnap.data ?? MediaS.i.currentPosition;
             final value = pos.inMilliseconds / dur.inMilliseconds;
             final draggingValue = context.select<MediaS, double?>(
               (mediaS) => mediaS.draggingProgress,
