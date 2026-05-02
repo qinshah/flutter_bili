@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bili/module/404/not_found_pv.dart';
 import 'package:flutter_bili/module/video/full_screen_video_v.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,11 +13,12 @@ import '../module/setting/settings_page.dart';
 import '../module/video/video_page_v.dart';
 import 'routes.dart';
 
-final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
-
 final router = GoRouter(
-  navigatorKey: _rootNavigatorKey,
   initialLocation: Routes.home,
+  redirect: (context, state) {
+    debugPrint(state.fullPath);
+    return null;
+  },
   routes: [
     GoRoute(
       path: Routes.login,
@@ -37,7 +39,8 @@ final router = GoRouter(
     GoRoute(
       path: Routes.video,
       builder: (context, state) {
-        final bvid = state.extra as String? ?? '';
+        final bvid = state.extra as String?;
+        if (bvid == null) return const NotFoundPV('缺失bvid');
         return VideoPageV(bvid: bvid);
       },
       routes: [

@@ -146,9 +146,19 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
 
     try {
       if (_currentLibrary == PlayerLibraryM.mediaKit) {
-        await _initMediaKit(videoUrl, playUrl, headers, startPosition: startPosition);
+        await _initMediaKit(
+          videoUrl,
+          playUrl,
+          headers,
+          startPosition: startPosition,
+        );
       } else {
-        await _initFvp(videoUrl, playUrl, headers, startPosition: startPosition);
+        await _initFvp(
+          videoUrl,
+          playUrl,
+          headers,
+          startPosition: startPosition,
+        );
       }
       _startHeartbeat();
       notifyListeners();
@@ -174,8 +184,6 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
       _fvpController = null;
       _disposeFvpStreams();
     }
-
-    notifyListeners();
   }
 
   Future<PlayingInfoM> getPlayingInfo() async {

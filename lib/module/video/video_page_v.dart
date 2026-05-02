@@ -609,13 +609,8 @@ class _VideoPageVState extends State<VideoPageV> {
   Widget _buildRelatedVideoCard(RelatedVideoItem video) {
     return InkWell(
       onTap: () async {
-        if (video.bvid != null) {
-          // 跳转到新的视频详情页
-          await context.push(
-            Routes.video,
-            extra: video.bvid,
-          );
-        }
+        if (video.bvid == null) return;
+        await context.push(Routes.video, extra: video.bvid);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
