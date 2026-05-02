@@ -6,8 +6,11 @@ import 'model/play_url_model.dart';
 import 'model/video_detail.dart';
 
 class VideoPageVm extends ChangeNotifier {
-  VideoPageVm._();
-  static final VideoPageVm i = VideoPageVm._();
+  final String _bvid;
+
+  String get bvid => _bvid;
+
+  VideoPageVm({required String bvid}) : _bvid = bvid;
 
   VideoDetailData? _detail;
   PlayUrlModel? _playUrl;
@@ -39,7 +42,7 @@ class VideoPageVm extends ChangeNotifier {
     return null;
   }
 
-  Future<void> loadDetail(String bvid) async {
+  Future<void> loadDetail() async {
     _detailState = null;
     notifyListeners();
 
@@ -54,7 +57,7 @@ class VideoPageVm extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadPlayUrl(String bvid, {int? qn}) async {
+  Future<void> loadPlayUrl( {int? qn}) async {
     _playUrlState = null;
     notifyListeners();
 

@@ -13,9 +13,7 @@ import 'package:u_widget/u_widget.dart';
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 class FullScreenVideoV extends StatelessWidget {
-  const FullScreenVideoV({required this.bvid, super.key});
-
-  final String bvid;
+  const FullScreenVideoV({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +29,10 @@ class FullScreenVideoV extends StatelessWidget {
             ? _exitFullScreen(context)
             : MediaS.i.playOrPause(),
         onTogglePlay: MediaS.i.playOrPause,
-        topLeft: (_) => const BackButton(color: Colors.white),
+        topLeft: (_) => BackButton(
+          color: Colors.white,
+          onPressed: () => _exitFullScreen(context),
+        ),
         topRight: (_) => const Row(
           children: [Icon(Icons.info), Icon(Icons.more_vert)],
         ),
@@ -67,10 +68,7 @@ class FullScreenVideoV extends StatelessWidget {
         ),
         bottomRight: (_) => Row(
           children: [
-            QualityButtonV(
-              bvid: bvid,
-              vm: context.read<VideoPageVm>(),
-            ),
+            QualityButtonV(videoPageVm: context.read<VideoPageVm>()),
             IconButton(
               onPressed: () => _exitFullScreen(context),
               icon: const Icon(

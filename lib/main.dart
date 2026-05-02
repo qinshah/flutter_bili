@@ -30,7 +30,6 @@ class BiliApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<MediaS>.value(value: MediaS.i),
         ChangeNotifierProvider<AuthS>.value(value: AuthS.i),
-        ChangeNotifierProvider<VideoPageVm>.value(value: VideoPageVm.i),
         ChangeNotifierProvider<RecommendVm>.value(
           value: RecommendVm.i,
         ),

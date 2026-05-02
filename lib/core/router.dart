@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bili/module/404/not_found_pv.dart';
 import 'package:flutter_bili/module/video/full_screen_video_v.dart';
+import 'package:flutter_bili/module/video/video_page_vm.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../module/home/home_scaffold.dart';
 import '../module/login/login_page.dart';
@@ -41,14 +43,23 @@ final router = GoRouter(
       builder: (context, state) {
         final bvid = state.extra as String?;
         if (bvid == null) return const NotFoundPV('缺失bvid');
-        return VideoPageV(bvid: bvid);
+        return ChangeNotifierProvider(
+          create: (BuildContext context) {
+            return VideoPageVm(bvid: bvid);
+          },
+          child: const VideoPageV(),
+        );
       },
       routes: [
         GoRoute(
           path: 'fullscreen',
           builder: (context, state) {
-            final bvid = state.extra as String? ?? '';
-            return FullScreenVideoV(bvid: bvid);
+            final vm = state.extra as VideoPageVm?;
+            if (vm == null) return const NotFoundPV('缺失VideoPageVm');
+            return ChangeNotifierProvider.value(
+              value: vm,
+              child: const FullScreenVideoV(),
+            );
           },
         ),
       ],

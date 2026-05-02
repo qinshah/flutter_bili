@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bili/core/routes.dart';
+import 'package:flutter_bili/module/video/video_page_vm.dart';
 import 'package:flutter_bili/module/video/widget/progress_v.dart';
 import 'package:flutter_bili/module/video/widget/quality_button_v.dart';
 import 'package:go_router/go_router.dart';
@@ -17,7 +18,6 @@ import '../../service/media_s.dart';
 import 'model/play_url_model.dart';
 import 'model/related_video.dart';
 import 'model/video_detail.dart';
-import 'video_page_vm.dart';
 
 // ─── Error code mapping ───────────────────────────────────────────────────────
 
@@ -35,15 +35,14 @@ String mapErrorCode(int? code, String? message) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 class VideoPageV extends StatefulWidget {
-  const VideoPageV({required this.bvid, super.key});
-
-  final String bvid;
+  const VideoPageV({super.key});
 
   @override
   State<VideoPageV> createState() => _VideoPageVState();
 }
 
 class _VideoPageVState extends State<VideoPageV> {
+  late final VideoPageVm _vm = context.read<VideoPageVm>();
   // 相关推荐视频
   List<RelatedVideoItem> _relatedVideos = [];
   bool _loadingRelated = false;
@@ -63,19 +62,18 @@ class _VideoPageVState extends State<VideoPageV> {
   // ── Data loading ────────────────────────────────────────────────────────────
 
   Future<void> _loadDetail() async {
-    final vm = context.read<VideoPageVm>();
-    await vm.loadDetail(widget.bvid);
+    await _vm.loadDetail();
     if (!mounted) return;
-    final detail = vm.detail;
+    final detail = _vm.detail;
     if (detail != null && detail.pages.isNotEmpty) {
-      await vm.loadPlayUrl(widget.bvid);
+      await _vm.loadPlayUrl();
       if (!mounted) return;
-      final cid = vm.getCid();
+      final cid = _vm.getCid();
       await Future.wait([
-        if (vm.playUrl != null && cid != null)
+        if (_vm.playUrl != null && cid != null)
           MediaS.i.initAndLoad(
-            vm.playUrl!,
-            bvid: widget.bvid,
+            _vm.playUrl!,
+            bvid: _vm.bvid,
             cid: cid,
           ),
         _loadRelatedVideos(),
@@ -87,7 +85,7 @@ class _VideoPageVState extends State<VideoPageV> {
   /// 加载相关推荐视频
   Future<void> _loadRelatedVideos() async {
     setState(() => _loadingRelated = true);
-    final result = await VideoHttp.relatedVideoList(bvid: widget.bvid);
+    final result = await VideoHttp.relatedVideoList(bvid: _vm.bvid);
     if (!mounted) return;
 
     if (result is Success<List<RelatedVideoItem>>) {
@@ -114,7 +112,7 @@ class _VideoPageVState extends State<VideoPageV> {
       final playUrl = context.read<VideoPageVm>().playUrl;
       final cid = service.getCid();
       if (playUrl == null || cid == null) return;
-      await MediaS.i.initAndLoad(playUrl, bvid: widget.bvid, cid: cid);
+      await MediaS.i.initAndLoad(playUrl, bvid: _vm.bvid, cid: cid);
     });
   }
 
@@ -130,12 +128,7 @@ class _VideoPageVState extends State<VideoPageV> {
       topLeft: (_) => const BackButton(color: Colors.white),
       bottomRight: (_) => Row(
         children: [
-          Builder(
-            builder: (context) => QualityButtonV(
-              bvid: widget.bvid,
-              vm: context.read<VideoPageVm>(),
-            ),
-          ),
+          Builder(builder: (context) => QualityButtonV(videoPageVm: _vm)),
           IconButton(
             onPressed: _fullScreen,
             icon: const Icon(
@@ -214,10 +207,7 @@ class _VideoPageVState extends State<VideoPageV> {
   Future<void> _fullScreen() async {
     await Future.wait([
       USystemS.fullScreen(),
-      context.push(
-        Routes.fullscreenVideo,
-        extra: widget.bvid,
-      ),
+      context.push(Routes.fullscreenVideo, extra: _vm),
     ]);
     await USystemS.exitFullScreen();
   }
@@ -390,30 +380,31 @@ class _VideoPageVState extends State<VideoPageV> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(toolbarHeight: 0),
-      body: Consumer<VideoPageVm>(
-        builder: (context, service, _) {
+      body: Builder(
+        builder: (context) {
+          final vm = context.watch<VideoPageVm>();
           // Detail loading state
-          if (service.detailState == null) {
+          if (vm.detailState == null) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (service.detailState is Error) {
-            final err = service.detailState! as Error;
+          if (vm.detailState is Error) {
+            final err = vm.detailState! as Error;
             // Try to parse error code from message
             final msg = mapErrorCode(null, err.message);
             return _buildErrorState(msg, onRetry: _loadDetail);
           }
 
-          final detail = service.detail!;
-          final playUrl = service.playUrl;
+          final detail = vm.detail!;
+          final playUrl = vm.playUrl;
 
           return LayoutBuilder(
             builder: (context, constraints) {
               final isWide = constraints.maxWidth >= 800;
               if (isWide) {
-                return _buildWideLayout(detail, playUrl, service);
+                return _buildWideLayout(detail, playUrl);
               } else {
-                return _buildNarrowLayout(detail, playUrl, service);
+                return _buildNarrowLayout(detail);
               }
             },
           );
@@ -422,17 +413,13 @@ class _VideoPageVState extends State<VideoPageV> {
     );
   }
 
-  Widget _buildNarrowLayout(
-    VideoDetailData detail,
-    PlayUrlModel? playUrl,
-    VideoPageVm service,
-  ) {
+  Widget _buildNarrowLayout(VideoDetailData detail) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildPlayer(),
-          _buildPlayUrlError(service),
+          _buildPlayUrlError(),
           _buildVideoInfo(detail),
           const Divider(height: 1),
           _buildTabSection(detail),
@@ -444,7 +431,6 @@ class _VideoPageVState extends State<VideoPageV> {
   Widget _buildWideLayout(
     VideoDetailData detail,
     PlayUrlModel? playUrl,
-    VideoPageVm service,
   ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -457,7 +443,7 @@ class _VideoPageVState extends State<VideoPageV> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildPlayer(),
-                _buildPlayUrlError(service),
+                _buildPlayUrlError(),
                 _buildVideoInfo(detail),
                 const Divider(height: 1),
                 _buildTabSection(detail),
@@ -690,9 +676,9 @@ class _VideoPageVState extends State<VideoPageV> {
     );
   }
 
-  Widget _buildPlayUrlError(VideoPageVm service) {
-    if (service.playUrlState is Error) {
-      final err = service.playUrlState as Error;
+  Widget _buildPlayUrlError() {
+    if (_vm.playUrlState is Error) {
+      final err = _vm.playUrlState! as Error;
       final msg = mapErrorCode(null, err.message);
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -707,7 +693,7 @@ class _VideoPageVState extends State<VideoPageV> {
               ),
             ),
             TextButton(
-              onPressed: () => service.loadPlayUrl(widget.bvid),
+              onPressed: () => _vm.loadPlayUrl(),
               child: const Text('重试'),
             ),
           ],

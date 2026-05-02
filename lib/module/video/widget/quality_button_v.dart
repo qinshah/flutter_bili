@@ -4,20 +4,18 @@ import 'package:flutter_bili/module/video/video_page_vm.dart';
 import 'package:flutter_bili/service/media_s.dart';
 
 class QualityButtonV extends StatelessWidget {
-  const QualityButtonV({required this.bvid, required this.vm, super.key});
+  const QualityButtonV({required this.videoPageVm, super.key});
 
-  final String bvid;
-
-  final VideoPageVm vm;
+  final VideoPageVm videoPageVm;
 
   Future<void> _changeQuality(int qn) async {
     final position = MediaS.i.currentPosition;
-    await vm.loadPlayUrl(bvid, qn: qn);
-    final cid = vm.getCid();
-    if (vm.playUrl == null || cid == null) return;
+    await videoPageVm.loadPlayUrl(qn: qn);
+    final cid = videoPageVm.getCid();
+    if (videoPageVm.playUrl == null || cid == null) return;
     await MediaS.i.initAndLoad(
-      vm.playUrl!,
-      bvid: bvid,
+      videoPageVm.playUrl!,
+      bvid: videoPageVm.bvid,
       cid: cid,
       startPosition: position,
     );
@@ -35,12 +33,12 @@ class QualityButtonV extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final qualities = vm.playUrl?.acceptQuality ?? [];
+    final qualities = videoPageVm.playUrl?.acceptQuality ?? [];
     if (qualities.isEmpty) return const SizedBox.shrink();
 
-    final currentQn = vm.currentQn;
+    final currentQn = videoPageVm.currentQn;
     final currentLabel = currentQn != null
-        ? _getQualityLabel(currentQn, vm)
+        ? _getQualityLabel(currentQn, videoPageVm)
         : '画质';
 
     return PopupMenuButton<int>(
@@ -56,7 +54,7 @@ class QualityButtonV extends StatelessWidget {
             value: qn,
             onTap: () => _changeQuality(qn),
             child: Text(
-              _getQualityLabel(qn, vm),
+              _getQualityLabel(qn, videoPageVm),
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 13,
