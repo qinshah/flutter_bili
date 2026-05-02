@@ -55,7 +55,7 @@ class _VideoPageVState extends State<VideoPageV> {
 
   @override
   void dispose() {
-    unawaited(MediaS.i.disposePlayer());
+    unawaited(_vm.disposePlayer());
     super.dispose();
   }
 
@@ -68,17 +68,10 @@ class _VideoPageVState extends State<VideoPageV> {
     if (detail != null && detail.pages.isNotEmpty) {
       await _vm.loadPlayUrl();
       if (!mounted) return;
-      final cid = _vm.getCid();
       await Future.wait([
-        if (_vm.playUrl != null && cid != null)
-          MediaS.i.initAndLoad(
-            _vm.playUrl!,
-            bvid: _vm.bvid,
-            cid: cid,
-          ),
+        _vm.initPlayer(),
         _loadRelatedVideos(),
       ]);
-      // 加载相关推荐
     }
   }
 
@@ -101,18 +94,14 @@ class _VideoPageVState extends State<VideoPageV> {
   // ── Page switching ──────────────────────────────────────────────────────────
 
   void _switchPage(int index) {
-    final service = context.read<VideoPageVm>();
-    final detail = service.detail;
+    final vm = context.read<VideoPageVm>();
+    final detail = vm.detail;
     if (detail == null || index < 0 || index >= detail.pages.length) return;
-    service.selectPage(index);
-    // Wait for playUrl to update then reload media
+    vm.selectPage(index);
     Future.microtask(() async {
-      await Future.delayed(const Duration(milliseconds: 300));
+      await vm.loadPlayUrl();
       if (!mounted) return;
-      final playUrl = context.read<VideoPageVm>().playUrl;
-      final cid = service.getCid();
-      if (playUrl == null || cid == null) return;
-      await MediaS.i.initAndLoad(playUrl, bvid: _vm.bvid, cid: cid);
+      await vm.initPlayer();
     });
   }
 

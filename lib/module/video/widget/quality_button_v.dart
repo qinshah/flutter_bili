@@ -1,25 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bili/module/video/model/video_quality_m.dart';
 import 'package:flutter_bili/module/video/video_page_vm.dart';
-import 'package:flutter_bili/service/media_s.dart';
 
 class QualityButtonV extends StatelessWidget {
   const QualityButtonV({required this.videoPageVm, super.key});
 
   final VideoPageVm videoPageVm;
-
-  Future<void> _changeQuality(int qn) async {
-    final position = MediaS.i.currentPosition;
-    await videoPageVm.loadPlayUrl(qn: qn);
-    final cid = videoPageVm.getCid();
-    if (videoPageVm.playUrl == null || cid == null) return;
-    await MediaS.i.initAndLoad(
-      videoPageVm.playUrl!,
-      bvid: videoPageVm.bvid,
-      cid: cid,
-      startPosition: position,
-    );
-  }
 
   String _getQualityLabel(int qn, VideoPageVm vm) {
     final desc = vm.getQualityDesc(qn);
@@ -52,7 +38,7 @@ class QualityButtonV extends StatelessWidget {
             height: 35,
             padding: const EdgeInsets.only(left: 30),
             value: qn,
-            onTap: () => _changeQuality(qn),
+            onTap: () => videoPageVm.changeQuality(qn),
             child: Text(
               _getQualityLabel(qn, videoPageVm),
               style: const TextStyle(
