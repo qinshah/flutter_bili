@@ -17,6 +17,7 @@ class FullScreenVideoV extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final vm = context.read<VideoPageVm>();
     return Scaffold(
       appBar: AppBar(toolbarHeight: 0),
       body: UVideoPlayer(
@@ -24,7 +25,7 @@ class FullScreenVideoV extends StatelessWidget {
         onProgressDragUpdate: MediaS.i.onProgressDragUpdate,
         aspectRatio: MediaS.i.getAspectRatio(),
         onProgressTapDown: MediaS.i.seekByProgress,
-        video: MediaS.i.buildVideoView(),
+        video: vm.buildVideoView(),
         onDoubleTapDown: (details) => details.kind == PointerDeviceKind.mouse
             ? _exitFullScreen(context)
             : MediaS.i.playOrPause(),

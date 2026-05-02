@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bili/core/http/loading_state.dart';
 import 'package:flutter_bili/core/http/video_http.dart';
 import 'package:flutter_bili/infrastructure/media_player/fvp_player.dart';
 import 'package:flutter_bili/infrastructure/media_player/media_kit_player.dart';
+import 'package:flutter_bili/infrastructure/media_player/media_player.dart';
 import 'package:flutter_bili/module/setting/model/setting_m.dart';
 import 'package:flutter_bili/service/media_s.dart';
 import 'package:flutter_bili/service/storage_s.dart';
@@ -18,6 +20,12 @@ class VideoPageVm extends ChangeNotifier {
   String get bvid => _bvid;
 
   VideoPageVm({required String bvid}) : _bvid = bvid;
+
+  MediaPlayer? _player;
+
+  Widget buildVideoView() {
+    return _player?.buildVideoView() ?? const SizedBox.shrink();
+  }
 
   VideoDetailData? _detail;
   PlayUrlModel? _playUrl;
@@ -86,7 +94,7 @@ class VideoPageVm extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> selectPage(int index) async {
+  void selectPage(int index) {
     if (_detail == null || index < 0 || index >= _detail!.pages.length) return;
     _selectedPage = index;
     notifyListeners();
@@ -104,34 +112,35 @@ class VideoPageVm extends ChangeNotifier {
     final playUrl = _playUrl;
     final cid = getCid();
     if (playUrl == null || cid == null) return;
-
-    await disposePlayer();
-
+    await _player?.dispose();
     final setting = StorageS.getSetting();
     try {
       switch (setting.playerLibrary) {
         case PlayerLibraryM.mediaKit:
-          MediaS.i.player = await MediaKitPlayer.create(
+          _player = await MediaKitPlayer.create(
             playUrl,
             headers: _headers,
             startPosition: startPosition,
           );
         case PlayerLibraryM.fvp:
-          MediaS.i.player = await FvpPlayer.create(
+          _player = await FvpPlayer.create(
             playUrl,
             headers: _headers,
             startPosition: startPosition,
           );
       }
-      MediaS.i.startHeartbeat(bvid: _bvid, cid: cid);
-      MediaS.i.notifyListeners();
+      MediaS.i.player = _player;
+      _startHeartbeat();
     } on Exception catch (e) {
       debugPrint('VideoPageVm initPlayer failed: $e');
     }
   }
 
-  Future<void> disposePlayer() async {
-    await MediaS.i.disposePlayer();
+  @override
+  Future<void> dispose() async {
+    stopHeartbeat();
+    await _player?.dispose();
+    super.dispose();
   }
 
   Future<void> changeQuality(int qn) async {
@@ -140,5 +149,45 @@ class VideoPageVm extends ChangeNotifier {
     if (_playUrl != null) {
       await initPlayer(startPosition: position);
     }
+  }
+
+  // ── heartbeat ──────────────────────────────────────────────────────────────
+  Timer _heartbeatTimer = Timer(Duration.zero, () {})..cancel();
+
+  void stopHeartbeat() {
+    _heartbeatTimer.cancel();
+  }
+
+  void _startHeartbeat() {
+    _heartbeatTimer.cancel();
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (
+      timer,
+    ) async {
+      print('心跳检测tick：${timer.tick}');
+      final cid = getCid();
+      if (cid == null || _player == null) return;
+      await VideoHttp.heartBeat(
+        bvid: _bvid,
+        cid: cid,
+        progress: _player!.currentDuration.inMilliseconds,
+      );
+    });
+  }
+
+  Future<void> onWillPushOther() async {
+    stopHeartbeat();
+    await _player?.pause();
+  }
+
+  Future<void> onPopBack() async {
+    if (_player == null) return;
+    MediaS.i.player = _player;
+    stopHeartbeat();
+    await _player?.play();
+  }
+
+  Future<void> onPlayOrPause() async {
+    MediaS.i.player = _player;
+    await MediaS.i.playOrPause();
   }
 }

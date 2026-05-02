@@ -42,7 +42,7 @@ final router = GoRouter(
       path: Routes.video,
       builder: (context, state) {
         final bvid = state.extra as String?;
-        if (bvid == null) return const NotFoundPV('缺失bvid');
+        if (bvid == null || bvid.isEmpty) return NotFoundPV('错误bvid：$bvid');
         return ChangeNotifierProvider(
           create: (BuildContext context) {
             return VideoPageVm(bvid: bvid);

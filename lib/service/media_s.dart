@@ -36,102 +36,63 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
     }
   }
 
-  MediaPlayer? player;
+  MediaPlayer? _player;
 
-  set player(MediaPlayer? value) {
-    if (value == player) return;
-    player?.dispose();
-    player = value;
-    notifyListeners();
-  }
+  // 只写
+  // ignore: avoid_setters_without_getters
+  set player(MediaPlayer? player) => _player = player;
 
-  // ── heartbeat ──────────────────────────────────────────────────────────────
-  Timer? _heartbeatTimer;
-  String _bvid = '';
-  int _cid = 0;
-
-  void startHeartbeat({required String bvid, required int cid}) {
-    _bvid = bvid;
-    _cid = cid;
-    _heartbeatTimer?.cancel();
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (_) async {
-      if (_bvid.isEmpty || _cid == 0) return;
-      await VideoHttp.heartBeat(
-        bvid: _bvid,
-        cid: _cid,
-        progress: currentPosition.inSeconds,
-      );
-    });
-  }
-
-  void stopHeartbeat() {
-    _heartbeatTimer?.cancel();
-    _heartbeatTimer = null;
-    _bvid = '';
-    _cid = 0;
-  }
-
-  // ── state delegates ────────────────────────────────────────────────────────
-
-  bool get isInitialized => player != null;
+  bool get isInitialized => _player != null;
 
   Stream<bool> get playingStream =>
-      player?.playingStream ?? const Stream<bool>.empty();
+      _player?.playingStream ?? const Stream<bool>.empty();
 
   Stream<Duration> get positionStream =>
-      player?.positionStream ?? const Stream<Duration>.empty();
+      _player?.positionStream ?? const Stream<Duration>.empty();
 
   Stream<Duration> get durationStream =>
-      player?.durationStream ?? const Stream<Duration>.empty();
+      _player?.durationStream ?? const Stream<Duration>.empty();
 
   Stream<bool> get bufferingStream =>
-      player?.bufferingStream ?? const Stream<bool>.empty();
+      _player?.bufferingStream ?? const Stream<bool>.empty();
 
-  double getAspectRatio() => player?.aspectRatio ?? 16 / 9;
+  double getAspectRatio() => _player?.aspectRatio ?? 16 / 9;
 
   // ── lifecycle ──────────────────────────────────────────────────────────────
 
-  Future<void> disposePlayer() async {
-    stopHeartbeat();
-    await player?.dispose();
-    player = null;
-    notifyListeners();
-  }
+  // Future<void> disposePlayer() async {
+  //   stopHeartbeat();
+  //   await _player?.dispose();
+  //   _player = null;
+  //   notifyListeners();
+  // }
 
   // ── playing info ───────────────────────────────────────────────────────────
 
   Future<PlayingInfoM> getPlayingInfo() async {
-    return await player?.getPlayingInfo() ?? PlayingInfoM();
+    return await _player?.getPlayingInfo() ?? PlayingInfoM();
   }
 
   // ── position / duration ────────────────────────────────────────────────────
 
-  Duration get currentPosition => player?.currentPosition ?? Duration.zero;
+  Duration get currentPosition => _player?.currentPosition ?? Duration.zero;
 
   Duration get currentDuration =>
-      player?.currentDuration ?? const Duration(seconds: 1);
+      _player?.currentDuration ?? const Duration(seconds: 1);
 
-  bool get isPlaying => player?.isPlaying ?? false;
+  bool get isPlaying => _player?.isPlaying ?? false;
 
-  bool get isBuffering => player?.isBuffering ?? false;
+  bool get isBuffering => _player?.isBuffering ?? false;
 
   // ── playback controls ───────────────────────────────────────────────────────
 
   @override
-  Future<void> play() async {
-    await player?.play();
-    await super.play();
-  }
+  Future<void> play() async => _player?.play();
 
   @override
-  Future<void> pause() async {
-    await player?.pause();
-    await super.pause();
-  }
+  Future<void> pause() async => _player?.pause();
 
-  Future<void> playOrPause() async {
-    await player?.playOrPause();
-  }
+  Future<void> playOrPause() async => _player?.playOrPause();
 
   Future<void> seekByProgress(double progress) async {
     final duration = currentDuration;
@@ -140,12 +101,12 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
   }
 
   @override
-  Future<void> seek(Duration position) async => player?.seek(position);
+  Future<void> seek(Duration position) async => _player?.seek(position);
 
-  Future<void> setVolume(double volume) async => player?.setVolume(volume);
+  Future<void> setVolume(double volume) async => _player?.setVolume(volume);
 
-  Widget buildVideoView() =>
-      player?.buildVideoView() ?? const SizedBox.shrink();
+  // Widget buildVideoView() =>
+  //     _player?.buildVideoView() ?? const SizedBox.shrink();
 
   double? _draggingProgress;
 

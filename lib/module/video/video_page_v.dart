@@ -50,29 +50,19 @@ class _VideoPageVState extends State<VideoPageV> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadDetail());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _init());
   }
 
-  @override
-  void dispose() {
-    unawaited(_vm.disposePlayer());
-    super.dispose();
-  }
-
-  // ── Data loading ────────────────────────────────────────────────────────────
-
-  Future<void> _loadDetail() async {
+  Future<void> _init() async {
     await _vm.loadDetail();
     if (!mounted) return;
     final detail = _vm.detail;
-    if (detail != null && detail.pages.isNotEmpty) {
-      await _vm.loadPlayUrl();
-      if (!mounted) return;
-      await Future.wait([
-        _vm.initPlayer(),
-        _loadRelatedVideos(),
-      ]);
-    }
+    await _vm.loadPlayUrl();
+    if (!mounted) return;
+    await Future.wait([
+      _vm.initPlayer(),
+      _loadRelatedVideos(),
+    ]);
   }
 
   /// 加载相关推荐视频
@@ -93,27 +83,22 @@ class _VideoPageVState extends State<VideoPageV> {
 
   // ── Page switching ──────────────────────────────────────────────────────────
 
-  void _switchPage(int index) {
-    final vm = context.read<VideoPageVm>();
-    final detail = vm.detail;
-    if (detail == null || index < 0 || index >= detail.pages.length) return;
-    vm.selectPage(index);
-    Future.microtask(() async {
-      await vm.loadPlayUrl();
-      if (!mounted) return;
-      await vm.initPlayer();
-    });
+  Future<void> _switchPage(int index) async {
+    _vm.selectPage(index);
+    await _vm.loadPlayUrl();
+    if (!mounted) return;
+    await _vm.initPlayer();
   }
 
   Widget _buildPlayer() {
     return UVideoPlayer(
       aspectRatio: MediaS.i.getAspectRatio(),
       onProgressTapDown: MediaS.i.seekByProgress,
-      onTogglePlay: MediaS.i.playOrPause,
+      onTogglePlay: _vm.onPlayOrPause,
       onDoubleTapDown: (details) => details.kind == PointerDeviceKind.mouse
           ? _fullScreen()
-          : MediaS.i.playOrPause(),
-      video: MediaS.i.buildVideoView(),
+          : _vm.onPlayOrPause(),
+      video: _vm.buildVideoView(),
       topLeft: (_) => const BackButton(color: Colors.white),
       bottomRight: (_) => Row(
         children: [
@@ -135,7 +120,7 @@ class _VideoPageVState extends State<VideoPageV> {
             snap.data ?? false ? Icons.pause : Icons.play_arrow,
             color: Colors.white,
           ),
-          onPressed: MediaS.i.playOrPause,
+          onPressed: _vm.onPlayOrPause,
         ),
       ),
       topRight: (_) => Row(
@@ -381,7 +366,7 @@ class _VideoPageVState extends State<VideoPageV> {
             final err = vm.detailState! as Error;
             // Try to parse error code from message
             final msg = mapErrorCode(null, err.message);
-            return _buildErrorState(msg, onRetry: _loadDetail);
+            return _buildErrorState(msg, onRetry: _init);
           }
 
           final detail = vm.detail!;
@@ -585,7 +570,10 @@ class _VideoPageVState extends State<VideoPageV> {
     return InkWell(
       onTap: () async {
         if (video.bvid == null) return;
+        await _vm.onWillPushOther();
+        if (!mounted) return;
         await context.push(Routes.video, extra: video.bvid);
+        await _vm.onPopBack();
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
