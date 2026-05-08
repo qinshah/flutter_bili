@@ -68,6 +68,7 @@ dependencies:
   meta: ^1.16.0
   tuple: ^2.0.2
   flutter_svg: ^2.2.4
+  icons_launcher: ^3.0.3
 
 dependency_overrides:
   path_provider: # 应用可用路径.鸿蒙适配
@@ -129,3 +130,18 @@ flutter:
   assets:
     - asset/svg/
     - asset/png/
+
+icons_launcher:
+  image_path: "asset/png/logo.png"
+  platforms:
+    android:
+      enable: true
+    ios:
+      enable: true
+    macos:
+      enable: true
+    windows:
+      enable: true
+    linux:
+      enable: true
+    
