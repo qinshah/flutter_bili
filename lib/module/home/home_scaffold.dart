@@ -24,39 +24,47 @@ class _HomeScaffoldState extends State<HomeScaffold> {
     const MinePage(),
   ];
 
-  static const _destinations = [
-    NavigationDestination(
-      icon: Icon(Icons.home_outlined),
-      selectedIcon: Icon(Icons.home),
-      label: '首页',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.motion_photos_on_outlined),
-      selectedIcon: Icon(Icons.motion_photos_on),
-      label: '动态',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.person_outline),
-      selectedIcon: Icon(Icons.person),
-      label: '我的',
-    ),
-  ];
+  static const _navIconSize = 24.0;
+
+  List<NavigationDestination> get _navItems {
+    // final theme = Theme.of(context);
+    return [
+      NavigationDestination(
+        icon: Image.asset('asset/png/home.png', width: _navIconSize),
+        selectedIcon: Image.asset(
+          'asset/png/home_selected.png',
+          width: _navIconSize,
+        ),
+        label: '首页',
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.motion_photos_on_outlined, size: _navIconSize),
+        selectedIcon: Icon(Icons.motion_photos_on, size: _navIconSize),
+        label: '动态',
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.person_outline, size: _navIconSize),
+        selectedIcon: Icon(Icons.person, size: _navIconSize),
+        label: '我的',
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthS>();
-    
+
     return Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth >= 800;
-          
+
           // 页面内容
           final body = IndexedStack(
             index: _selectedIndex,
             children: _pages,
           );
-          
+
           if (isWide) {
             // 宽屏布局：左侧 NavigationRail + 右侧内容
             return Row(
@@ -84,7 +92,7 @@ class _HomeScaffoldState extends State<HomeScaffold> {
                       ),
                     ],
                   ),
-                  destinations: _destinations.map((d) {
+                  destinations: _navItems.map((d) {
                     return NavigationRailDestination(
                       icon: d.icon,
                       selectedIcon: d.selectedIcon ?? d.icon,
@@ -113,13 +121,13 @@ class _HomeScaffoldState extends State<HomeScaffold> {
         builder: (context, constraints) {
           final isWide = constraints.maxWidth >= 800;
           if (isWide) return const SizedBox.shrink();
-          
           return BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
             currentIndex: _selectedIndex,
             onTap: (index) {
               setState(() => _selectedIndex = index);
             },
-            items: _destinations.map((d) {
+            items: _navItems.map((d) {
               return BottomNavigationBarItem(
                 icon: d.icon,
                 activeIcon: d.selectedIcon ?? d.icon,

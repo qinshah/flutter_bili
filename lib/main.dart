@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bili/core/router.dart';
 import 'package:flutter_bili/module/dynamic/dynamic_page_vm.dart';
 import 'package:flutter_bili/module/home/recommend_vm.dart';
-import 'package:flutter_bili/module/video/video_page_vm.dart';
 import 'package:flutter_bili/service/auth_s.dart';
 import 'package:flutter_bili/service/media_s.dart';
 import 'package:flutter_bili/service/storage_s.dart';
@@ -40,8 +39,15 @@ class BiliApp extends StatelessWidget {
       child: MaterialApp.router(
         routerConfig: router,
         theme: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: const Color(0xFFFB7299),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFFFB7299),
+            primary: const Color(0xFFFB7299),
+            surface: Colors.white,
+          ),
+          // // 去掉水波纹
+          // splashColor: Colors.transparent,
+          // highlightColor: Colors.transparent,
+          // splashFactory: NoSplash.splashFactory,
         ),
       ),
     );

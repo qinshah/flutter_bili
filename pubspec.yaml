@@ -67,6 +67,7 @@ dependencies:
       path: flutter_package
   meta: ^1.16.0
   tuple: ^2.0.2
+  flutter_svg: ^2.2.4
 
 dependency_overrides:
   path_provider: # 应用可用路径.鸿蒙适配
@@ -124,3 +125,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - asset/svg/
+    - asset/png/
