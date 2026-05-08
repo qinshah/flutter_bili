@@ -68,7 +68,6 @@ dependencies:
   meta: ^1.16.0
   tuple: ^2.0.2
   flutter_svg: ^2.2.4
-  icons_launcher: ^3.0.3
 
 dependency_overrides:
   path_provider: # 应用可用路径.鸿蒙适配
@@ -123,6 +122,8 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   hive_ce_generator: ^1.11.1
   build_runner: ^2.13.1
+  rename_app: ^1.6.6
+  icons_launcher: ^3.0.3
 
 flutter:
   uses-material-design: true
@@ -131,6 +132,8 @@ flutter:
     - asset/svg/
     - asset/png/
 
+config_name:
+  name: "flutter哔哩"
 icons_launcher:
   image_path: "asset/png/logo.png"
   platforms:
