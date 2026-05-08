@@ -1,44 +1,22 @@
-# flutter_bili
+# flutter哔哩
 
-A new Flutter project.
+使用flutter框架实现哔哩哔哩
 
-## Using Rust Inside Flutter
+# 免责声明
 
-This project leverages Flutter for GUI and Rust for the backend logic,
-utilizing the capabilities of the
-[Rinf](https://pub.dev/packages/rinf) framework.
+此项目仅用于个人学习与测试 Flutter 开发，请于下载后 24 小时内删除
 
-To run and build this app, you need to have
-[Flutter SDK](https://docs.flutter.dev/get-started/install)
-and [Rust toolchain](https://www.rust-lang.org/tools/install)
-installed on your system.
-You can check that your system is ready with the commands below.
-Note that all the Flutter subcomponents should be installed.
+所用API为B站公开API的封装，无任何破解行为
 
-```shell
-rustc --version
-flutter doctor
-```
+所依赖资源来自互联网公开, 如有侵权请告知删除
 
-You also need to have the CLI tool for Rinf ready.
+# 致谢
 
-```shell
-cargo install rinf_cli
-```
+- [openharmony-tpc/flutter_flutter](https://gitcode.com/openharmony-tpc/flutter_flutter)
+- [flutter/flutter](https://github.com/flutter/flutter)
+- [guozhigq/pilipala](https://github.com/guozhigq/pilipala)
+- [orz12/PiliPalaX](https://github.com/orz12/PiliPalaX)
+- [bggRGjQaUbCoE/PiliPlus](https://github.com/bggRGjQaUbCoE/PiliPlus)
+- ······
 
-Signals sent between Dart and Rust are implemented using signal attributes.
-If you've modified the signal structs, run the following command
-to generate the corresponding Dart classes:
-
-```shell
-rinf gen
-```
-
-Now you can run and build this app just like any other Flutter projects.
-
-```shell
-flutter run
-```
-
-For detailed instructions on writing Rust and Flutter together,
-please refer to Rinf's [documentation](https://rinf.cunarist.org).
+# 开源协议: [MIT](LICENSE)
