@@ -19,7 +19,7 @@ class AuthS extends ChangeNotifier {
   /// Load credentials from local storage
   void loadLocalCredential() {
     _credentials = _credentialBox.get('main');
-    print(_credentialBox.get('main'));
+    print('加载登录信息: $_credentials');
     notifyListeners();
   }
 
@@ -44,11 +44,13 @@ class AuthS extends ChangeNotifier {
       await StorageS.cacheB.put('loginCookies', cookies);
     }
     _credentials = cred;
+    print('保存登录信息: $_credentials');
     notifyListeners();
   }
 
   /// Clear credentials from storage and update state
   Future<void> clearCredentials() async {
+    print('清理登录信息');
     // TODO: fixing
     // await _credentialBox.delete('main');
     // await StorageS.cacheB.delete('loginCookies');
