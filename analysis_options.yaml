@@ -1,8 +1,1 @@
-include: package:very_good_analysis/analysis_options.yaml
-analyzer:
-  errors:
-    always_use_package_imports: ignore
-    unreachable_switch_default: ignore
-    public_member_api_docs: ignore
-    sort_constructors_first: ignore
-    eol_at_end_of_file: ignore
+include: package:flutter_lints/flutter.yaml
