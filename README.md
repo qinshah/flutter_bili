@@ -19,4 +19,6 @@
 - [bggRGjQaUbCoE/PiliPlus](https://github.com/bggRGjQaUbCoE/PiliPlus)
 - ······
 
-# 开源协议: [MIT](LICENSE)
+# 开源协议
+
+[LICENSE](LICENSE)
