@@ -163,14 +163,14 @@ class VideoPageVm extends ChangeNotifier {
     _heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (
       timer,
     ) async {
-      print('心跳检测tick：${timer.tick}');
       final cid = getCid();
       if (cid == null || _player == null) return;
-      await VideoHttp.heartBeat(
-        bvid: _bvid,
-        cid: cid,
-        progress: _player!.currentDuration.inMilliseconds,
-      );
+      // TODO: 心跳检测网络请求
+      // await VideoHttp.heartBeat(
+      //   bvid: _bvid,
+      //   cid: cid,
+      //   progress: _player!.currentDuration.inMilliseconds,
+      // );
     });
   }
 

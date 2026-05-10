@@ -73,6 +73,13 @@ abstract final class Api {
   // 番剧/剧集明细
   static const String pgcInfo = '/pgc/view/web/season';
 
+  // UP主空间
+  static const String space = '/x/v2/space';
+
+  // UP主投稿视频
+  static const String spaceArchive =
+      '${HttpString.appBaseUrl}/x/v2/space/archive/cursor';
+
   // 稍后再看
   static const String toViewLater = '/x/v2/history/toview/add';
 
@@ -86,7 +93,8 @@ abstract final class Api {
   static const String searchByType = '/x/web-interface/wbi/search/type';
 
   // 热搜
-  static const String hotSearchList = 'https://s.search.bilibili.com/main/hotword';
+  static const String hotSearchList =
+      'https://s.search.bilibili.com/main/hotword';
 
   // 默认搜索词
   static const String searchDefault = '/x/web-interface/wbi/search/default';

@@ -18,7 +18,7 @@ packages:
     source: hosted
     version: "10.0.1"
   archive:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: archive
       sha256: a96e8b390886ee8abb49b7bd3ac8df6f451c621619f52a26e815fdcf568959ff
@@ -83,6 +83,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.1.2"
+  brotli:
+    dependency: "direct main"
+    description:
+      name: brotli
+      sha256: "7f891558ed779aab2bed874f0a36b8123f9ff3f19cf6efbee89e18ed294945ae"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.6.0"
   build:
     dependency: transitive
     description:

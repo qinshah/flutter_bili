@@ -4,13 +4,14 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:dio/dio.dart';
+import 'package:flutter_bili/core/http/api.dart';
+import 'package:flutter_bili/core/http/request.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 
 import '../../service/storage_s.dart';
 
 abstract final class WbiSign {
-  static const _mixinKeyEncTab = <int>[
+  static final List<int> _mixinKeyEncTab = [
     46,
     47,
     18,
@@ -82,16 +83,15 @@ abstract final class WbiSign {
   // Characters that must be stripped before URL-encoding per Bilibili spec.
   static final RegExp _chrFilter = RegExp(r"[!'\(\)\*]");
 
-  static Future<String>? _pendingFetch;
-
   // ---------------------------------------------------------------------------
   // Public API
   // ---------------------------------------------------------------------------
 
   /// Signs [params] in-place and returns the same map with `w_rid` and `wts`.
   static Future<Map<String, Object>> makSign(Map<String, Object> params) async {
-    final mixinKey = await _getOrRefreshMixinKey();
+    final mixinKey = await getWbiKeys();
     _encWbi(params, mixinKey);
+    print('Wbi 签名: $params');
     return params;
   }
 
@@ -99,76 +99,64 @@ abstract final class WbiSign {
   // Internal helpers
   // ---------------------------------------------------------------------------
 
-  /// Reorders characters of [orig] using the shuffle table and returns first 32.
-  static String getMixinKey(String orig) {
-    final units = orig.codeUnits;
-    return String.fromCharCodes(
-      _mixinKeyEncTab.map((i) => units[i]),
-    ).substring(0, 32);
+  // 对 imgKey 和 subKey 进行字符顺序打乱编码
+  static String _getMixinKey(String orig) {
+    final codeUnits = orig.codeUnits;
+    return String.fromCharCodes(_mixinKeyEncTab.map((i) => codeUnits[i]));
   }
 
   static void _encWbi(Map<String, Object> params, String mixinKey) {
     params['wts'] = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-
+    // 按照 key 重排参数
     final keys = params.keys.toList()..sort();
-    final query = keys
-        .map((k) {
-          final v = params[k].toString().replaceAll(_chrFilter, '');
-          return '${Uri.encodeComponent(k)}=${Uri.encodeComponent(v)}';
-        })
+    final queryStr = keys
+        .map(
+          (i) =>
+              '${Uri.encodeComponent(i)}=${Uri.encodeComponent(params[i].toString().replaceAll(_chrFilter, ''))}',
+        )
         .join('&');
-
-    params['w_rid'] = md5.convert(utf8.encode(query + mixinKey)).toString();
+    params['w_rid'] = md5
+        .convert(utf8.encode(queryStr + mixinKey))
+        .toString(); // 计算 w_rid
   }
 
   static final Box<dynamic> _cacheB = StorageS.cacheB;
 
-  static FutureOr<String> _getOrRefreshMixinKey() {
-    final now = DateTime.now();
+  static Future<String> getWbiKeys() async {
+    final nowDate = DateTime.now();
     final cachedTs = _cacheB.get('wbiTimestamp', defaultValue: 0) as int;
-    final cachedKey = _cacheB.get('mixinKey') as String?;
+    final cachedDate = DateTime.fromMillisecondsSinceEpoch(
+      cachedTs,
+    );
+    final mixinKey = _cacheB.get('mixinKey') as String?;
+    if (cachedDate.day == nowDate.day && mixinKey != null) return mixinKey;
 
-    // Same calendar day → reuse cached key.
-    if (cachedKey != null &&
-        DateTime.fromMillisecondsSinceEpoch(cachedTs).day == now.day) {
-      return cachedKey;
-    }
-
-    // Need refresh — deduplicate concurrent calls.
-    return _pendingFetch ??= _fetchAndCache(now).whenComplete(() {
-      _pendingFetch = null;
-    });
+    final newWbiKeys = await _getNewWbiKeys();
+    await _cacheB.put('wbiTimestamp', nowDate.millisecondsSinceEpoch);
+    await _cacheB.put('mixinKey', newWbiKeys);
+    return newWbiKeys;
   }
 
-  static Future<String> _fetchAndCache(DateTime now) async {
+  static Future<String> _getNewWbiKeys() async {
+    final res = await Request().get(Api.userInfo);
     try {
-      final dio = Dio(
-        BaseOptions(
-          connectTimeout: const Duration(seconds: 10),
-          receiveTimeout: const Duration(seconds: 10),
-        ),
+      final wbiUrls = res.data['data']['wbi_img'];
+
+      final imgUrl = wbiUrls['img_url'] as String;
+      final subUrl = wbiUrls['sub_url'] as String;
+      final mixinKey = _getMixinKey(
+        imgUrl
+                .substring(imgUrl.lastIndexOf('/') + 1, imgUrl.length)
+                .split('.')[0] +
+            subUrl
+                .substring(subUrl.lastIndexOf('/') + 1, subUrl.length)
+                .split('.')[0],
       );
-      final resp = await dio.get(_navUrl);
-      final wbiImg = resp.data['data']['wbi_img'] as Map<String, dynamic>;
-
-      final imgKey = _fileNameWithoutExt(wbiImg['img_url'] as String);
-      final subKey = _fileNameWithoutExt(wbiImg['sub_url'] as String);
-      final mixinKey = getMixinKey(imgKey + subKey);
-
-      await _cacheB.put('wbiTimestamp', now.millisecondsSinceEpoch);
-      await _cacheB.put('mixinKey', mixinKey);
-
+      print('新Wbi 签名: $mixinKey');
       return mixinKey;
-    } catch (_) {
-      // Return cached key if available, otherwise empty string.
-      return _cacheB.get('mixinKey') as String? ?? '';
+    } catch (e) {
+      print('获取 Wbi 签名失败: $e');
+      return '';
     }
-  }
-
-  /// Extracts the filename without extension from a URL path.
-  static String _fileNameWithoutExt(String url) {
-    final path = Uri.parse(url).pathSegments.last;
-    final dot = path.lastIndexOf('.');
-    return dot == -1 ? path : path.substring(0, dot);
   }
 }

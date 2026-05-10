@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bili/module/404/not_found_pv.dart';
+import 'package:flutter_bili/module/up/up_page_vm.dart';
+import 'package:flutter_bili/module/up/up_page_v.dart';
 import 'package:flutter_bili/module/video/full_screen_video_v.dart';
 import 'package:flutter_bili/module/video/video_page_vm.dart';
 import 'package:go_router/go_router.dart';
@@ -13,7 +15,6 @@ import '../module/setting/data_settings_page.dart';
 import '../module/setting/player_settings_page.dart';
 import '../module/setting/settings_page.dart';
 import '../module/video/video_page_v.dart';
-import 'routes.dart';
 
 final router = GoRouter(
   initialLocation: Routes.home,
@@ -65,6 +66,19 @@ final router = GoRouter(
       ],
     ),
     GoRoute(
+      path: Routes.up,
+      builder: (context, state) {
+        final mid = int.tryParse(state.extra?.toString() ?? '');
+        if (mid == null || mid <= 0) {
+          return const NotFoundPV('无效的用户ID');
+        }
+        return ChangeNotifierProvider(
+          create: (_) => UpPageVm(mid: mid),
+          child: const UpPageV(),
+        );
+      },
+    ),
+    GoRoute(
       path: Routes.setting,
       builder: (context, state) => const SettingsPage(),
       routes: [
@@ -80,3 +94,15 @@ final router = GoRouter(
     ),
   ],
 );
+abstract class Routes {
+  static const String login = '/login';
+  static const String home = '/home';
+  static const String search = '/search';
+  static const String message = '/message';
+  static const String video = '/video';
+  static const String fullscreenVideo = '$video/fullscreen';
+  static const String up = '/up';
+  static const String setting = '/setting';
+  static const String playerSetting = '$setting/player';
+  static const String dataSetting = '$setting/data';
+}

@@ -187,26 +187,31 @@ class _VideoPageVState extends State<VideoPageV> {
   }
 
   Widget _buildOwnerRow(VideoDetailData detail) {
-    return Row(
-      children: [
-        ClipOval(
-          child: CachedNetworkImage(
-            imageUrl: detail.owner.face,
-            width: 36,
-            height: 36,
-            fit: BoxFit.cover,
-            errorWidget: (_, _, _) => const Icon(Icons.person, size: 36),
+    return InkWell(
+      onTap: () {
+        context.push(Routes.up, extra: detail.owner.mid.toString());
+      },
+      child: Row(
+        children: [
+          ClipOval(
+            child: CachedNetworkImage(
+              imageUrl: detail.owner.face,
+              width: 36,
+              height: 36,
+              fit: BoxFit.cover,
+              errorWidget: (_, _, _) => const Icon(Icons.person, size: 36),
+            ),
           ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            detail.owner.name,
-            style: const TextStyle(fontWeight: FontWeight.w500),
-            overflow: TextOverflow.ellipsis,
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              detail.owner.name,
+              style: const TextStyle(fontWeight: FontWeight.w500),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
