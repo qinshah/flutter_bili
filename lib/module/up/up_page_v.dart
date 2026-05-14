@@ -1,10 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bili/core/http/loading_state.dart';
-import 'package:flutter_bili/core/routes.dart';
 import 'package:flutter_bili/module/up/model/space_archive.dart';
 import 'package:flutter_bili/module/up/model/space_data.dart';
 import 'package:flutter_bili/module/up/up_page_vm.dart';
+import 'package:flutter_bili/route/router.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 

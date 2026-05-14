@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bili/core/router.dart';
 import 'package:flutter_bili/module/dynamic/dynamic_page_vm.dart';
 import 'package:flutter_bili/module/home/recommend_vm.dart';
+import 'package:flutter_bili/route/router.dart';
 import 'package:flutter_bili/service/auth_s.dart';
 import 'package:flutter_bili/service/media_s.dart';
 import 'package:flutter_bili/service/storage_s.dart';
 import 'package:provider/provider.dart';
 import 'package:rinf/rinf.dart';
 import 'package:u_service/u_service.dart';
+
 import 'src/bindings/bindings.dart';
 
 Future<void> main() async {

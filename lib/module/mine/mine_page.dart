@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bili/route/router.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/routes.dart';
 import '../../service/auth_s.dart';
 
 /// 我的页面

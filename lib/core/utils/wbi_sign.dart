@@ -91,7 +91,6 @@ abstract final class WbiSign {
   static Future<Map<String, Object>> makSign(Map<String, Object> params) async {
     final mixinKey = await getWbiKeys();
     _encWbi(params, mixinKey);
-    print('Wbi 签名: $params');
     return params;
   }
 

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bili/module/404/not_found_pv.dart';
-import 'package:flutter_bili/module/up/up_page_vm.dart';
 import 'package:flutter_bili/module/up/up_page_v.dart';
+import 'package:flutter_bili/module/up/up_page_vm.dart';
 import 'package:flutter_bili/module/video/full_screen_video_v.dart';
 import 'package:flutter_bili/module/video/video_page_vm.dart';
+import 'package:flutter_bili/route/router_observer.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -18,6 +19,7 @@ import '../module/video/video_page_v.dart';
 
 final router = GoRouter(
   initialLocation: Routes.home,
+  observers: [RouterObserver()],
   redirect: (context, state) {
     debugPrint(state.fullPath);
     return null;
@@ -94,6 +96,7 @@ final router = GoRouter(
     ),
   ],
 );
+
 abstract class Routes {
   static const String login = '/login';
   static const String home = '/home';

@@ -3,10 +3,10 @@ import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bili/core/routes.dart';
 import 'package:flutter_bili/module/video/video_page_vm.dart';
 import 'package:flutter_bili/module/video/widget/progress_v.dart';
 import 'package:flutter_bili/module/video/widget/quality_button_v.dart';
+import 'package:flutter_bili/route/router.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:u_service/u_service.dart';

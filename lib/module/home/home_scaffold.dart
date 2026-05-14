@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bili/core/routes.dart';
 import 'package:flutter_bili/module/dynamic/dynamic_page_v.dart';
 import 'package:flutter_bili/module/home/recommend_page.dart';
 import 'package:flutter_bili/module/mine/mine_page.dart';
+import 'package:flutter_bili/route/router.dart';
 import 'package:flutter_bili/service/auth_s.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
