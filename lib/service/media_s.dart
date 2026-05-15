@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bili/core/http/video_http.dart';
 import 'package:flutter_bili/infrastructure/media_player/media_player.dart';
 import 'package:flutter_bili/module/setting/model/setting_m.dart';
 import 'package:flutter_bili/module/video/model/playing_info_m.dart';
@@ -22,17 +21,7 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
       case PlayerLibraryM.mediaKit:
         MediaKit.ensureInitialized();
       case PlayerLibraryM.fvp:
-        fvp.registerWith(
-          options: {
-            'video.decoders': [
-              'VideoToolbox',
-              'MediaCodec',
-              'D3D11',
-              'NVDEC',
-              'FFmpeg',
-            ],
-          },
-        );
+        fvp.registerWith();
     }
   }
 

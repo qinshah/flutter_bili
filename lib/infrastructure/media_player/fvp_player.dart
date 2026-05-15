@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bili/infrastructure/media_player/mdk_video_docoder.dart';
 import 'package:flutter_bili/infrastructure/media_player/media_player.dart';
 import 'package:flutter_bili/module/video/model/play_url_model.dart';
 import 'package:flutter_bili/module/video/model/playing_info_m.dart';
@@ -20,6 +21,8 @@ class FvpPlayer extends MediaPlayer {
   final _durationCtrl = StreamController<Duration>.broadcast();
   final _bufferingCtrl = StreamController<bool>.broadcast();
 
+  MdkVideoDecoder? _deCoder;
+
   static Future<FvpPlayer> create(
     PlayUrlModel playUrl, {
     Map<String, String>? headers,
@@ -30,11 +33,13 @@ class FvpPlayer extends MediaPlayer {
       throw Exception('No video URL available');
     }
 
-    final effectiveHeaders = headers ?? const {
-      'referer': 'https://www.bilibili.com',
-      'user-agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-    };
+    final effectiveHeaders =
+        headers ??
+        const {
+          'referer': 'https://www.bilibili.com',
+          'user-agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        };
 
     final controller = VideoPlayerController.networkUrl(
       Uri.parse(videoUrl),
@@ -42,18 +47,17 @@ class FvpPlayer extends MediaPlayer {
     );
     await controller.initialize();
 
-    if (Platform.operatingSystem == 'ohos') {
-      controller.setVideoDecoders([
-        'OH',
-        'ohcodec:copy=1',
-      ]);
-    }
-
     final audioUrl = playUrl.dash?.audio?.firstOrNull?.baseUrl;
     if (audioUrl != null) controller.setExternalAudio(audioUrl);
 
-    final player = FvpPlayer._(controller, playUrl.quality?.toString());
+    MdkVideoDecoder? deCoder;
+    if (Platform.operatingSystem == 'ohos') {
+      deCoder = MdkVideoDecoder.OH;
+    }
+    if (deCoder != null) controller.setVideoDecoders([deCoder.name]);
 
+    final player = FvpPlayer._(controller, playUrl.quality?.toString());
+    player._deCoder = deCoder;
     controller.addListener(player._onUpdate);
     player._onUpdate();
 
@@ -129,6 +133,7 @@ class FvpPlayer extends MediaPlayer {
     return PlayingInfoM(
       width: videoCodec?.width ?? value.size.width.toInt(),
       height: videoCodec?.height ?? value.size.height.toInt(),
+      decoder: _deCoder == null ? '未知(默认)' : _deCoder.toString(),
       codec: videoCodec?.codec.isNotEmpty ?? false ? videoCodec?.codec : null,
       quality: _quality,
       pixelFormat: videoCodec?.formatName,
