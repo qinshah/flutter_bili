@@ -146,10 +146,14 @@ class FvpPlayer extends MediaPlayer {
   @override
   Future<void> dispose() async {
     _controller.removeListener(_onUpdate);
-    await _controller.dispose();
-    await _playingCtrl.close();
-    await _positionCtrl.close();
-    await _durationCtrl.close();
-    await _bufferingCtrl.close();
+    await _controller.setVolume(0);
+    await _controller.play(); // 奇怪的bug，以暂停状态dispose会导致UI线程锁死
+    Future.wait([
+      _playingCtrl.close(),
+      _positionCtrl.close(),
+      _durationCtrl.close(),
+      _bufferingCtrl.close(),
+      _controller.dispose(),
+    ]);
   }
 }
