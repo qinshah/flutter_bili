@@ -8,6 +8,7 @@ import 'package:flutter_bili/infrastructure/media_player/fvp_player.dart';
 import 'package:flutter_bili/infrastructure/media_player/media_kit_player.dart';
 import 'package:flutter_bili/infrastructure/media_player/media_player.dart';
 import 'package:flutter_bili/module/setting/model/setting_m.dart';
+import 'package:flutter_bili/route/router.dart';
 import 'package:flutter_bili/service/media_s.dart';
 import 'package:flutter_bili/service/storage_s.dart';
 
@@ -79,11 +80,7 @@ class VideoPageVm extends ChangeNotifier {
     final cid = getCid();
     if (cid == null) return;
 
-    final result = await VideoHttp.videoUrl(
-      bvid: bvid,
-      cid: cid,
-      qn: qn,
-    );
+    final result = await VideoHttp.videoUrl(bvid: bvid, cid: cid, qn: qn);
     _playUrlState = result;
 
     if (result is Success<PlayUrlModel>) {
@@ -174,16 +171,19 @@ class VideoPageVm extends ChangeNotifier {
     });
   }
 
-  Future<void> onWillPushOther() async {
+  Future<void> onPushNext(String? next) async {
+    print('onPushNext: $next');
+    // 跳转到其他页面时暂停播放
+    if (next == 'fullscreen') return; // 全屏例外
     stopHeartbeat();
     await _player?.pause();
   }
 
-  Future<void> onPopBack() async {
+  Future<void> onPopNext(String? next) async {
     if (_player == null) return;
     MediaS.i.player = _player;
-    stopHeartbeat();
-    await _player?.play();
+    _startHeartbeat();
+    await _player!.play();
   }
 
   Future<void> onPlayOrPause() async {

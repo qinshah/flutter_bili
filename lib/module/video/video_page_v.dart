@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bili/module/video/video_page_vm.dart';
 import 'package:flutter_bili/module/video/widget/progress_v.dart';
 import 'package:flutter_bili/module/video/widget/quality_button_v.dart';
+import 'package:flutter_bili/route/global_r_o.dart';
+import 'package:flutter_bili/route/my_route.dart';
 import 'package:flutter_bili/route/router.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -41,7 +43,29 @@ class VideoPageV extends StatefulWidget {
   State<VideoPageV> createState() => _VideoPageVState();
 }
 
-class _VideoPageVState extends State<VideoPageV> {
+class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route != null) RO.subscribe(this, route);
+  }
+
+  @override
+  void didPopNext(nextRoute) => _vm.onPopNext(nextRoute.settings.name);
+  @override
+  void didPushNext(nextRoute) => _vm.onPushNext(nextRoute.settings.name);
+  @override
+  void didPop(previousRoute) {
+    print('弹出本页面，回到之前的页面${previousRoute.settings.name}');
+  }
+
+  @override
+  void dispose() {
+    RO.unsubscribe(this);
+    super.dispose();
+  }
+
   late final VideoPageVm _vm = context.read<VideoPageVm>();
   // 相关推荐视频
   List<RelatedVideoItem> _relatedVideos = [];
@@ -56,13 +80,9 @@ class _VideoPageVState extends State<VideoPageV> {
   Future<void> _init() async {
     await _vm.loadDetail();
     if (!mounted) return;
-    final detail = _vm.detail;
     await _vm.loadPlayUrl();
     if (!mounted) return;
-    await Future.wait([
-      _vm.initPlayer(),
-      _loadRelatedVideos(),
-    ]);
+    await Future.wait([_vm.initPlayer(), _loadRelatedVideos()]);
   }
 
   /// 加载相关推荐视频
@@ -105,10 +125,7 @@ class _VideoPageVState extends State<VideoPageV> {
           Builder(builder: (context) => QualityButtonV(videoPageVm: _vm)),
           IconButton(
             onPressed: _fullScreen,
-            icon: const Icon(
-              Icons.fullscreen,
-              color: Colors.white,
-            ),
+            icon: const Icon(Icons.fullscreen, color: Colors.white),
           ),
         ],
       ),
@@ -143,15 +160,9 @@ class _VideoPageVState extends State<VideoPageV> {
                 ),
               );
             },
-            icon: const Icon(
-              Icons.info,
-              color: Colors.white,
-            ),
+            icon: const Icon(Icons.info, color: Colors.white),
           ),
-          const Icon(
-            Icons.more_vert,
-            color: Colors.white,
-          ),
+          const Icon(Icons.more_vert, color: Colors.white),
         ],
       ),
       topCenter: (_) => const Center(child: Text('标题')),
@@ -407,10 +418,7 @@ class _VideoPageVState extends State<VideoPageV> {
     );
   }
 
-  Widget _buildWideLayout(
-    VideoDetailData detail,
-    PlayUrlModel? playUrl,
-  ) {
+  Widget _buildWideLayout(VideoDetailData detail, PlayUrlModel? playUrl) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -431,10 +439,7 @@ class _VideoPageVState extends State<VideoPageV> {
           ),
         ),
         // Right: related videos
-        Expanded(
-          flex: 1,
-          child: _buildRelatedVideosPanel(),
-        ),
+        Expanded(flex: 1, child: _buildRelatedVideosPanel()),
       ],
     );
   }
@@ -454,10 +459,7 @@ class _VideoPageVState extends State<VideoPageV> {
           SizedBox(
             height: 400,
             child: TabBarView(
-              children: [
-                _buildIntroTab(detail),
-                _buildReplyTab(),
-              ],
+              children: [_buildIntroTab(detail), _buildReplyTab()],
             ),
           ),
         ],
@@ -471,10 +473,7 @@ class _VideoPageVState extends State<VideoPageV> {
       padding: const EdgeInsets.all(16),
       children: [
         if (detail.desc.isNotEmpty) ...[
-          Text(
-            detail.desc,
-            style: const TextStyle(fontSize: 14),
-          ),
+          Text(detail.desc, style: const TextStyle(fontSize: 14)),
           const SizedBox(height: 16),
         ],
         // 相关推荐（窄屏时显示）
@@ -500,10 +499,7 @@ class _VideoPageVState extends State<VideoPageV> {
           children: [
             Icon(Icons.chat_bubble_outline, size: 48, color: Colors.grey),
             SizedBox(height: 16),
-            Text(
-              '评论区功能待实现',
-              style: TextStyle(color: Colors.grey),
-            ),
+            Text('评论区功能待实现', style: TextStyle(color: Colors.grey)),
           ],
         ),
       ),
@@ -519,10 +515,7 @@ class _VideoPageVState extends State<VideoPageV> {
           padding: EdgeInsets.symmetric(vertical: 8),
           child: Text(
             '相关推荐',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
         if (_loadingRelated)
@@ -549,10 +542,7 @@ class _VideoPageVState extends State<VideoPageV> {
             padding: EdgeInsets.all(16),
             child: Text(
               '相关推荐',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
           Expanded(
@@ -575,10 +565,8 @@ class _VideoPageVState extends State<VideoPageV> {
     return InkWell(
       onTap: () async {
         if (video.bvid == null) return;
-        await _vm.onWillPushOther();
         if (!mounted) return;
-        await context.push(Routes.video, extra: video.bvid);
-        await _vm.onPopBack();
+        context.push(Routes.video, extra: video.bvid);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -601,11 +589,7 @@ class _VideoPageVState extends State<VideoPageV> {
                         child: const Icon(Icons.error),
                       ),
                     )
-                  : Container(
-                      width: 160,
-                      height: 90,
-                      color: Colors.grey[300],
-                    ),
+                  : Container(width: 160, height: 90, color: Colors.grey[300]),
             ),
             const SizedBox(width: 12),
             // 信息

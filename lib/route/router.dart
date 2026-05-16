@@ -4,7 +4,7 @@ import 'package:flutter_bili/module/up/up_page_v.dart';
 import 'package:flutter_bili/module/up/up_page_vm.dart';
 import 'package:flutter_bili/module/video/full_screen_video_v.dart';
 import 'package:flutter_bili/module/video/video_page_vm.dart';
-import 'package:flutter_bili/route/router_observer.dart';
+import 'package:flutter_bili/route/global_r_o.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -19,16 +19,13 @@ import '../module/video/video_page_v.dart';
 
 final router = GoRouter(
   initialLocation: Routes.home,
-  observers: [RouterObserver()],
+  observers: [RO],
   redirect: (context, state) {
     debugPrint(state.fullPath);
     return null;
   },
   routes: [
-    GoRoute(
-      path: Routes.login,
-      builder: (context, state) => const LoginPage(),
-    ),
+    GoRoute(path: Routes.login, builder: (context, state) => const LoginPage()),
     GoRoute(
       path: Routes.home,
       builder: (context, state) => const HomeScaffold(),
