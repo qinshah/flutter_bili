@@ -127,7 +127,7 @@ class VideoPageVm extends ChangeNotifier {
           );
       }
       MediaS.i.player = _player;
-      _startHeartbeat();
+      _startHeartbeat(bvid: bvid, cid: cid, player: _player!);
     } on Exception catch (e) {
       debugPrint('VideoPageVm initPlayer failed: $e');
     }
@@ -135,7 +135,7 @@ class VideoPageVm extends ChangeNotifier {
 
   @override
   Future<void> dispose() async {
-    stopHeartbeat();
+    _stopHeartbeat();
     await _player?.dispose();
     super.dispose();
   }
@@ -149,24 +149,29 @@ class VideoPageVm extends ChangeNotifier {
   }
 
   // ── heartbeat ──────────────────────────────────────────────────────────────
-  Timer _heartbeatTimer = Timer(Duration.zero, () {})..cancel();
+  static Timer _heartbeatTimer = Timer(Duration.zero, () {})..cancel();
 
-  void stopHeartbeat() {
+  static void _stopHeartbeat() {
     _heartbeatTimer.cancel();
   }
 
-  void _startHeartbeat() {
+  /// 开始心跳检测，单例
+  static void _startHeartbeat({
+    required String bvid,
+    required int cid,
+    required MediaPlayer player,
+  }) {
+    final playedMilliseconds = player.currentPosition.inMilliseconds;
     _heartbeatTimer.cancel();
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 5), (
       timer,
     ) async {
-      final cid = getCid();
-      if (cid == null || _player == null) return;
+      debugPrint('心跳检测模拟: $bvid, $cid, $playedMilliseconds');
       // TODO: 心跳检测网络请求
       // await VideoHttp.heartBeat(
-      //   bvid: _bvid,
+      //   bvid: bvid,
       //   cid: cid,
-      //   progress: _player!.currentDuration.inMilliseconds,
+      //   progress: playedMilliseconds,
       // );
     });
   }
@@ -175,15 +180,17 @@ class VideoPageVm extends ChangeNotifier {
     print('onPushNext: $next');
     // 跳转到其他页面时暂停播放
     if (next == 'fullscreen') return; // 全屏例外
-    stopHeartbeat();
+    _stopHeartbeat();
     await _player?.pause();
   }
 
   Future<void> onPopNext(String? next) async {
     if (_player == null) return;
     MediaS.i.player = _player;
-    _startHeartbeat();
     await _player!.play();
+    int? cid = getCid();
+    if (cid == null) return;
+    _startHeartbeat(bvid: _bvid, cid: cid, player: _player!);
   }
 
   Future<void> onPlayOrPause() async {
