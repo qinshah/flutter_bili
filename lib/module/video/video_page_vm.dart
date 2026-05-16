@@ -8,7 +8,6 @@ import 'package:flutter_bili/infrastructure/media_player/fvp_player.dart';
 import 'package:flutter_bili/infrastructure/media_player/media_kit_player.dart';
 import 'package:flutter_bili/infrastructure/media_player/media_player.dart';
 import 'package:flutter_bili/module/setting/model/setting_m.dart';
-import 'package:flutter_bili/route/router.dart';
 import 'package:flutter_bili/service/media_s.dart';
 import 'package:flutter_bili/service/storage_s.dart';
 

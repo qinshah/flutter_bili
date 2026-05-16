@@ -14,7 +14,7 @@ class RecommendHttp {
           'version': 1,
           'feed_version': 'V8',
           'homepage_ver': 1,
-          'ps': 20,
+          'ps': 30,
           'fresh_idx': freshIdx,
           'brush': freshIdx,
           'fresh_type': 4,

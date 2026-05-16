@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bili/core/http/request.dart';
 import 'package:flutter_bili/module/dynamic/dynamic_page_vm.dart';
 import 'package:flutter_bili/module/home/recommend_vm.dart';
 import 'package:flutter_bili/route/router.dart';
@@ -14,7 +15,11 @@ import 'package:u_service/u_service.dart';
 Future<void> main() async {
   // await initializeRust(assignRustSignal);
   WidgetsFlutterBinding.ensureInitialized();
-  await Future.wait([StorageS.init(), USystemS.initWindowManager()]);
+  await Future.wait([
+    StorageS.init(),
+    USystemS.initWindowManager(),
+    Request().init(),
+  ]);
   MediaS.initLib();
   AuthS.i.loadLocalCredential();
 
@@ -30,12 +35,8 @@ class BiliApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<MediaS>.value(value: MediaS.i),
         ChangeNotifierProvider<AuthS>.value(value: AuthS.i),
-        ChangeNotifierProvider<RecommendVm>.value(
-          value: RecommendVm.i,
-        ),
-        ChangeNotifierProvider<DynamicPageVm>.value(
-          value: DynamicPageVm.i,
-        ),
+        ChangeNotifierProvider<RecommendVm>.value(value: RecommendVm.i),
+        ChangeNotifierProvider<DynamicPageVm>.value(value: DynamicPageVm.i),
       ],
       child: MaterialApp.router(
         routerConfig: router,

@@ -15,7 +15,12 @@ class Request {
 
   late final Dio dio;
 
-  Request._internal() {
+  Future<void> init() async {
+    final res = await Dio().get('https://www.bilibili.com/');
+    var cookies = res.headers['set-cookie'];
+    cookies?.add(('SESSDATA=xxx'));
+    final cookie = cookies?.join('; ');
+    // 设置baseUrl和cookie
     dio = Dio(
       BaseOptions(
         baseUrl: 'https://api.bilibili.com',
@@ -23,7 +28,7 @@ class Request {
         receiveTimeout: const Duration(seconds: 10),
         sendTimeout: const Duration(seconds: 10),
         headers: {
-          'user-agent': 'Dart/3.6 (dart:io)',
+          'cookie': cookie, // 设置cookie解决推荐视频不变
           'env': 'prod',
           'app-key': 'android64',
           'x-bili-aurora-zone': 'sh001',
@@ -31,11 +36,10 @@ class Request {
         },
       ),
     );
-    dio.interceptors.addAll([
-      RetryInterceptor(dio: dio),
-      AuthInterceptor(),
-    ]);
+    dio.interceptors.addAll([RetryInterceptor(dio: dio), AuthInterceptor()]);
   }
+
+  Request._internal();
 
   static String _responseDecoder(
     List<int> responseBytes,
