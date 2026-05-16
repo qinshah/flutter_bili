@@ -191,7 +191,7 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
 
   Future<void> _fullScreen() async {
     await Future.wait([
-      USystemS.fullScreen(),
+      USystemS.fullScreen(landscape: _vm.isVideoLandscape()),
       context.push(Routes.fullscreenVideo, extra: _vm),
     ]);
     await USystemS.exitFullScreen();

@@ -190,4 +190,8 @@ class VideoPageVm extends ChangeNotifier {
     MediaS.i.player = _player;
     await MediaS.i.playOrPause();
   }
+
+  bool isVideoLandscape() {
+    return (_player?.aspectRatio ?? 2) > 1.3;
+  }
 }
