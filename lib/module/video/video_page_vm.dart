@@ -7,6 +7,7 @@ import 'package:flutter_bili/infrastructure/media_player/fvp_player.dart';
 import 'package:flutter_bili/infrastructure/media_player/media_kit_player.dart';
 import 'package:flutter_bili/infrastructure/media_player/media_player.dart';
 import 'package:flutter_bili/module/setting/model/setting_m.dart';
+import 'package:flutter_bili/route/router.dart';
 import 'package:flutter_bili/service/media_s.dart';
 import 'package:flutter_bili/service/storage_s.dart';
 
@@ -105,27 +106,36 @@ class VideoPageVm extends ChangeNotifier {
 
   Future<void> initPlayer({Duration? startPosition}) async {
     final playUrl = _playUrl;
-    final cid = getCid();
-    if (playUrl == null || cid == null) return;
-    await _player?.dispose();
+    if (playUrl == null) return;
+    final MediaPlayer newPlayer;
     final setting = StorageS.getSetting();
     try {
       switch (setting.playerLibrary) {
         case PlayerLibraryM.mediaKit:
-          _player = await MediaKitPlayer.create(
+          newPlayer = await MediaKitPlayer.create(
             playUrl,
             headers: _headers,
             startPosition: startPosition,
           );
         case PlayerLibraryM.fvp:
-          _player = await FvpPlayer.create(
+          newPlayer = await FvpPlayer.create(
             playUrl,
             headers: _headers,
             startPosition: startPosition,
           );
       }
-      MediaS.i.player = _player;
-      _startHeartbeat(bvid: bvid, cid: cid, player: _player!);
+      try {
+        // 暂停其他播放器
+        await MediaS.i.pause();
+      } catch (_) {
+        print('TODO 修复MediaS持有的播放器在其它地方被dispose');
+      }
+      // 暂停其他播放器
+      await _player?.dispose(); // 释放可能的旧播放器
+      _player = newPlayer;
+      MediaS.i.setPlayer(newPlayer);
+      await _play();
+      notifyListeners();
     } on Exception catch (e) {
       debugPrint('VideoPageVm initPlayer failed: $e');
     }
@@ -139,7 +149,7 @@ class VideoPageVm extends ChangeNotifier {
   }
 
   Future<void> changeQuality(int qn) async {
-    final position = MediaS.i.currentPosition;
+    final position = _player?.currentPosition;
     await loadPlayUrl(qn: qn);
     if (_playUrl != null) {
       await initPlayer(startPosition: position);
@@ -153,6 +163,7 @@ class VideoPageVm extends ChangeNotifier {
     _heartbeatTimer.cancel();
   }
 
+  // TODO: 转由其它模块负责，从通知中心播放时也需执行
   /// 开始心跳检测，单例
   static void _startHeartbeat({
     required String bvid,
@@ -161,9 +172,7 @@ class VideoPageVm extends ChangeNotifier {
   }) {
     final playedMilliseconds = player.currentPosition.inMilliseconds;
     _heartbeatTimer.cancel();
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 5), (
-      timer,
-    ) async {
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
       debugPrint('心跳检测模拟: $bvid, $cid, $playedMilliseconds');
       // TODO: 心跳检测网络请求
       // await VideoHttp.heartBeat(
@@ -174,29 +183,36 @@ class VideoPageVm extends ChangeNotifier {
     });
   }
 
+  bool _wasPlaying = false;
+
   Future<void> onPushNext(String? next) async {
-    print('onPushNext: $next');
-    // 跳转到其他页面时暂停播放
-    if (next == 'fullscreen') return; // 全屏例外
-    _stopHeartbeat();
-    await _player?.pause();
+    _wasPlaying = _player?.isPlaying ?? false;
+    // 跳转新视频页时暂停
+    if (next == Routes.video) _pause();
   }
 
   Future<void> onPopNext(String? next) async {
-    if (_player == null) return;
-    MediaS.i.player = _player;
-    await _player!.play();
-    int? cid = getCid();
-    if (cid == null) return;
-    _startHeartbeat(bvid: _bvid, cid: cid, player: _player!);
+    if (_wasPlaying) _play();
   }
 
   Future<void> onPlayOrPause() async {
-    MediaS.i.player = _player;
-    await MediaS.i.playOrPause();
+    if (_player == null) return;
+    _player!.isPlaying ? _pause() : _play();
   }
 
   bool isVideoLandscape() {
     return (_player?.aspectRatio ?? 2) > 1.3;
+  }
+
+  void _pause() {
+    _player?.pause();
+    _stopHeartbeat();
+  }
+
+  Future<void> _play() async {
+    final cid = getCid();
+    if (cid == null || _player == null) return;
+    await _player!.play();
+    _startHeartbeat(bvid: _bvid, cid: cid, player: _player!);
   }
 }

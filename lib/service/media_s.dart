@@ -27,9 +27,7 @@ class MediaS extends BaseAudioHandler with ChangeNotifier, SeekHandler {
 
   MediaPlayer? _player;
 
-  // 只写
-  // ignore: avoid_setters_without_getters
-  set player(MediaPlayer? player) => _player = player;
+  void setPlayer(MediaPlayer? player) => _player = player;
 
   bool get isInitialized => _player != null;
 
