@@ -257,7 +257,7 @@ class SettingsPage extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-              auth.clearCredentials();
+              auth.logout();
               Navigator.pop(context);
             },
             child: const Text('确定'),

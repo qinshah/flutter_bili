@@ -1,30 +1,34 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
-import '../module/login/model/credential_m.dart';
+import '../module/login/model/user_m.dart';
 import 'storage_s.dart';
 
 class AuthS extends ChangeNotifier {
   AuthS._();
   static final AuthS i = AuthS._();
-  late final Box<CredentialM> _credentialBox = StorageS.credentialB;
+  late final Box<UserM> _userBox = StorageS.userB;
 
-  CredentialM? _credentials;
+  UserM? _curUser;
 
-  bool get isLogin => _credentials != null;
-  String? get accessKey => _credentials?.accessKey;
-  String? get sessdata => _credentials?.sessdata;
-  String? get csrf => _credentials?.csrf;
-  CredentialM? get credentials => _credentials;
+  bool get isLogin => _curUser != null;
+  UserM? get curUser => _curUser;
+  String? get accessKey => _curUser?.accessKey;
+  String? get sessdata => _curUser?.sessdata;
+  String? get csrf => _curUser?.csrf;
+  String? get cookies => _curUser?.cookies;
+
+  List<UserM> get users => _userBox.values.toList();
 
   /// Load credentials from local storage
-  void loadLocalCredential() {
-    _credentials = _credentialBox.get('main');
-    print('加载登录信息: $_credentials');
+  void loadLocalUsers() {
+    final all = users;
+    if (all.isNotEmpty) {
+      _curUser = all.last;
+    }
     notifyListeners();
   }
 
-  /// Save credentials to Hive and update state
-  Future<void> saveCredentials({
+  Future<void> saveUser({
     required String accessKey,
     required String refreshToken,
     required String sessdata,
@@ -32,29 +36,26 @@ class AuthS extends ChangeNotifier {
     DateTime? expiresAt,
     String? cookies,
   }) async {
-    final cred = CredentialM(
+    final user = UserM(
       accessKey: accessKey,
       refreshToken: refreshToken,
       sessdata: sessdata,
       csrf: csrf,
       expiresAt: expiresAt ?? DateTime.now().add(const Duration(days: 30)),
+      cookies: cookies ?? '',
     );
-    await _credentialBox.put('main', cred);
-    if (cookies != null && cookies.isNotEmpty) {
-      await StorageS.cacheB.put('loginCookies', cookies);
-    }
-    _credentials = cred;
-    print('保存登录信息: $_credentials');
+    await _userBox.add(user);
+    _curUser = user;
     notifyListeners();
   }
 
-  /// Clear credentials from storage and update state
-  Future<void> clearCredentials() async {
-    print('清理登录信息');
-    // TODO: fixing
-    // await _credentialBox.delete('main');
-    // await StorageS.cacheB.delete('loginCookies');
-    _credentials = null;
+  void switchUser(UserM? user) {
+    _curUser = user;
+    notifyListeners();
+  }
+
+  Future<void> logout() async {
+    _curUser = null;
     notifyListeners();
   }
 }

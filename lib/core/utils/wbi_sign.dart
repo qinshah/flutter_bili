@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_bili/core/http/api.dart';
 import 'package:flutter_bili/core/http/request.dart';
-import 'package:hive_ce_flutter/hive_flutter.dart';
 
 import '../../service/storage_s.dart';
 
@@ -119,7 +118,7 @@ abstract final class WbiSign {
         .toString(); // 计算 w_rid
   }
 
-  static final Box<dynamic> _cacheB = StorageS.cacheB;
+  static final _cacheB = StorageS.cacheB;
 
   static Future<String> getWbiKeys() async {
     final nowDate = DateTime.now();

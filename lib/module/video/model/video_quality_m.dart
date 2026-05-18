@@ -1,5 +1,7 @@
 import 'package:hive_ce_flutter/hive_flutter.dart';
 
+part 'video_quality_m.g.dart';
+
 @HiveType(typeId: 3)
 enum VideoQualityM {
   @HiveField(8)

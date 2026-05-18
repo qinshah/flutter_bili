@@ -2,24 +2,25 @@
 // Do not modify
 // Check in to version control
 
-import 'package:flutter_bili/module/login/model/credential_m.dart';
-import 'package:flutter_bili/module/setting/model/setting_m.dart';
 import 'package:hive_ce/hive_ce.dart';
+import 'package:flutter_bili/module/login/model/user_m.dart';
+import 'package:flutter_bili/module/setting/model/setting_m.dart';
+import 'package:flutter_bili/module/video/model/video_quality_m.dart';
 
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {
-    registerAdapter(CredentialMAdapter());
     registerAdapter(PlayerLibraryMAdapter());
     registerAdapter(SettingMAdapter());
+    registerAdapter(UserMAdapter());
     registerAdapter(VideoQualityMAdapter());
   }
 }
 
 extension IsolatedHiveRegistrar on IsolatedHiveInterface {
   void registerAdapters() {
-    registerAdapter(CredentialMAdapter());
     registerAdapter(PlayerLibraryMAdapter());
     registerAdapter(SettingMAdapter());
+    registerAdapter(UserMAdapter());
     registerAdapter(VideoQualityMAdapter());
   }
 }

@@ -451,7 +451,7 @@ class _MinePageState extends State<MinePage>
     );
     
     if (confirmed == true && mounted) {
-      await auth.clearCredentials();
+      await auth.logout();
     }
   }
 }

@@ -1,34 +1,35 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'credential_m.dart';
+part of 'user_m.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class CredentialMAdapter extends TypeAdapter<CredentialM> {
+class UserMAdapter extends TypeAdapter<UserM> {
   @override
   final typeId = 0;
 
   @override
-  CredentialM read(BinaryReader reader) {
+  UserM read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return CredentialM(
+    return UserM(
       accessKey: fields[0] as String,
       refreshToken: fields[1] as String,
       sessdata: fields[2] as String,
       csrf: fields[3] as String,
       expiresAt: fields[4] as DateTime,
+      cookies: fields[5] as String,
     );
   }
 
   @override
-  void write(BinaryWriter writer, CredentialM obj) {
+  void write(BinaryWriter writer, UserM obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.accessKey)
       ..writeByte(1)
@@ -38,7 +39,9 @@ class CredentialMAdapter extends TypeAdapter<CredentialM> {
       ..writeByte(3)
       ..write(obj.csrf)
       ..writeByte(4)
-      ..write(obj.expiresAt);
+      ..write(obj.expiresAt)
+      ..writeByte(5)
+      ..write(obj.cookies);
   }
 
   @override
@@ -47,7 +50,7 @@ class CredentialMAdapter extends TypeAdapter<CredentialM> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is CredentialMAdapter &&
+      other is UserMAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

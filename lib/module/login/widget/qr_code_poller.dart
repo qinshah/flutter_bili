@@ -31,7 +31,7 @@ class QrCodePoller {
           stop();
           final data = result['data'] as Map<String, dynamic>;
           try {
-            await authService.saveCredentials(
+            await authService.saveUser(
               accessKey: data['access_token'] as String? ?? '',
               refreshToken: data['refresh_token'] as String? ?? '',
               sessdata: _extractSessdata(data),

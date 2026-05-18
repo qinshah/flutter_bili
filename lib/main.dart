@@ -21,7 +21,7 @@ Future<void> main() async {
     Request().init(),
   ]);
   MediaS.initLib();
-  AuthS.i.loadLocalCredential();
+  AuthS.i.loadLocalUsers();
 
   runApp(const BiliApp());
 }

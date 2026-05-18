@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bili/core/http/loading_state.dart';
 import 'package:flutter_bili/core/http/video_http.dart';
