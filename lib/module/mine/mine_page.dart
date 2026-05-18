@@ -21,10 +21,10 @@ class _MinePageState extends State<MinePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    
+
     final auth = context.watch<AuthS>();
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       backgroundColor: theme.colorScheme.surfaceContainerLowest,
       appBar: AppBar(
@@ -98,23 +98,31 @@ class _MinePageState extends State<MinePage>
         // 用户信息区域
         _buildUserInfoSection(theme),
         const SizedBox(height: 8),
-        
+
         // 我的大会员
         _buildVipSection(theme),
         const SizedBox(height: 8),
-        
+
         // 功能入口（离线缓存、历史记录、我的收藏、稍后再看）
         _buildQuickActions(theme),
         const SizedBox(height: 8),
-        
+
         // 创作中心
         _buildCreatorCenter(theme),
         const SizedBox(height: 8),
-        
+
         // 我的服务
         _buildMyServices(theme),
         const SizedBox(height: 24),
-        
+        // 切换账号
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: OutlinedButton(
+            onPressed: () => context.push(Routes.login),
+            child: const Text('切换账号'),
+          ),
+        ),
+        const SizedBox(height: 10),
         // 退出登录按钮
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -194,7 +202,7 @@ class _MinePageState extends State<MinePage>
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // 动态、关注、粉丝
           Row(
             children: [
@@ -203,21 +211,13 @@ class _MinePageState extends State<MinePage>
                   // TODO: 跳转动态
                 }),
               ),
-              Container(
-                width: 1,
-                height: 40,
-                color: theme.dividerColor,
-              ),
+              Container(width: 1, height: 40, color: theme.dividerColor),
               Expanded(
                 child: _buildStatItem('3', '关注', () {
                   // TODO: 跳转关注
                 }),
               ),
-              Container(
-                width: 1,
-                height: 40,
-                color: theme.dividerColor,
-              ),
+              Container(width: 1, height: 40, color: theme.dividerColor),
               Expanded(
                 child: _buildStatItem('1', '粉丝', () {
                   // TODO: 跳转粉丝
@@ -237,10 +237,7 @@ class _MinePageState extends State<MinePage>
         children: [
           Text(
             count,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           Text(
@@ -262,10 +259,7 @@ class _MinePageState extends State<MinePage>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Colors.pink.shade50,
-            Colors.pink.shade100,
-          ],
+          colors: [Colors.pink.shade50, Colors.pink.shade100],
         ),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -284,10 +278,7 @@ class _MinePageState extends State<MinePage>
           ),
           Text(
             '热播内容看不停',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.pink.shade700,
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.pink.shade700),
           ),
           const SizedBox(width: 4),
           Icon(Icons.chevron_right, color: Colors.pink.shade700, size: 20),
@@ -317,10 +308,7 @@ class _MinePageState extends State<MinePage>
               children: [
                 Icon(action.icon, size: 28, color: theme.colorScheme.primary),
                 const SizedBox(height: 8),
-                Text(
-                  action.label,
-                  style: const TextStyle(fontSize: 12),
-                ),
+                Text(action.label, style: const TextStyle(fontSize: 12)),
               ],
             ),
           );
@@ -342,15 +330,15 @@ class _MinePageState extends State<MinePage>
             children: [
               const Text(
                 '创作中心',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               FilledButton.tonal(
                 onPressed: () {},
                 style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                 ),
                 child: const Text('发布'),
               ),
@@ -385,10 +373,7 @@ class _MinePageState extends State<MinePage>
         children: [
           const Text(
             '我的服务',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           GridView.count(
@@ -449,7 +434,7 @@ class _MinePageState extends State<MinePage>
         ],
       ),
     );
-    
+
     if (confirmed == true && mounted) {
       await auth.logout();
     }
