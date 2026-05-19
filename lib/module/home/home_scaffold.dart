@@ -30,11 +30,8 @@ class _HomeScaffoldState extends State<HomeScaffold> {
     // final theme = Theme.of(context);
     return [
       NavigationDestination(
-        icon: Image.asset('asset/png/home.png', width: _navIconSize),
-        selectedIcon: Image.asset(
-          'asset/png/home_selected.png',
-          width: _navIconSize,
-        ),
+        icon: Icon(Icons.home_outlined, size: _navIconSize),
+        selectedIcon: Icon(Icons.home, size: _navIconSize),
         label: '首页',
       ),
       const NavigationDestination(
@@ -60,10 +57,7 @@ class _HomeScaffoldState extends State<HomeScaffold> {
           final isWide = constraints.maxWidth >= 800;
 
           // 页面内容
-          final body = IndexedStack(
-            index: _selectedIndex,
-            children: _pages,
-          );
+          final body = IndexedStack(index: _selectedIndex, children: _pages);
 
           if (isWide) {
             // 宽屏布局：左侧 NavigationRail + 右侧内容
