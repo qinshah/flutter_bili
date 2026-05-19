@@ -48,14 +48,13 @@ class _RecommendPageState extends State<RecommendPage>
   @override
   Widget build(BuildContext context) {
     super.build(context); // 必须调用以保持状态
-    
+
     return Consumer<RecommendVm>(
       builder: (context, service, _) {
         // 初始加载中
         if (!service.hasData && service.loading) {
           return const Center(child: CircularProgressIndicator());
         }
-
         // 加载失败
         if (!service.hasData && service.error != null) {
           return Center(
@@ -76,36 +75,28 @@ class _RecommendPageState extends State<RecommendPage>
         // 显示视频列表
         return RefreshIndicator(
           onRefresh: () => service.refresh(),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final isWide = constraints.maxWidth >= 800;
-              final crossAxisCount = isWide ? 4 : 2;
-
-              return GridView.builder(
-                key: service.gridKey,
-                controller: service.scrollController,
-                padding: const EdgeInsets.all(8),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  childAspectRatio: 0.7,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                ),
-                itemCount: service.videoList.length + (service.loading ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index >= service.videoList.length) {
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  }
-
-                  final video = service.videoList[index];
-                  return _buildVideoCard(video);
-                },
-              );
+          child: GridView.builder(
+            key: service.gridKey,
+            controller: service.scrollController,
+            padding: const EdgeInsets.all(8),
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 250,
+              childAspectRatio: 0.8,
+              crossAxisSpacing: 5,
+              mainAxisSpacing: 6,
+            ),
+            itemCount: service.videoList.length + (service.loading ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index >= service.videoList.length) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+              final video = service.videoList[index];
+              return _buildVideoCard(video);
             },
           ),
         );
@@ -115,7 +106,10 @@ class _RecommendPageState extends State<RecommendPage>
 
   Widget _buildVideoCard(RecVideoItem video) {
     return Card(
+      elevation: 0,
       clipBehavior: Clip.antiAlias,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       child: InkWell(
         onTap: () {
           if (video.bvid != null) {
@@ -127,101 +121,91 @@ class _RecommendPageState extends State<RecommendPage>
           children: [
             // 封面
             AspectRatio(
-              aspectRatio: 16 / 10,
+              aspectRatio: 4 / 3,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  if (video.cover != null)
-                    CachedNetworkImage(
-                      imageUrl: video.cover!,
-                      fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => Container(
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.error),
+                  CachedNetworkImage(
+                    imageUrl: video.cover ?? '',
+                    fit: BoxFit.cover,
+                    memCacheWidth: 300,
+                    errorWidget: (_, _, _) => Container(
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.error),
+                    ),
+                  ),
+                  // 播放量和点赞
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [Colors.black45, Colors.transparent],
+                        ),
                       ),
-                    )
-                  else
-                    Container(color: Colors.grey[300]),
-                  // 时长
-                  if (video.duration != null)
-                    Positioned(
-                      right: 4,
-                      bottom: 4,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.7),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                        child: Text(
-                          _formatDuration(video.duration!),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
+                      child: Column(
+                        children: [
+                          DefaultTextStyle(
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                            child: IconTheme(
+                              data: IconThemeData(color: Colors.white),
+                              child: Row(
+                                children: [
+                                  // 播放量和点赞
+                                  Icon(Icons.play_circle_outline, size: 14),
+                                  const SizedBox(width: 2),
+                                  Text(_formatCount(video.stat?.view)),
+                                  const SizedBox(width: 12),
+                                  Icon(Icons.list_alt_outlined, size: 14),
+                                  const SizedBox(width: 2),
+                                  Text(_formatCount(video.stat?.danmaku)),
+                                  const Spacer(),
+                                  // 时长
+                                  Text(_formatDuration(video.duration ?? 0)),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
+                  ),
                 ],
               ),
             ),
-            // 标题和信息
+            // 标题、UP
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      video.title ?? '',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    LayoutBuilder(
+                      builder: (_, BoxConstraints constraints) {
+                        final maxWidth = constraints.maxWidth;
+                        return Text(
+                          style: TextStyle(fontSize: maxWidth / 12),
+                          video.title ?? '',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      },
                     ),
                     const Spacer(),
                     // UP主
-                    if (video.owner?.name != null)
-                      Text(
-                        video.owner!.name!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+                    DefaultTextStyle(
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      child: Row(
+                        children: [
+                          Text('[up] '),
+                          Text(video.owner?.name ?? ''),
+                        ],
                       ),
-                    const SizedBox(height: 4),
-                    // 播放量和点赞
-                    Row(
-                      children: [
-                        Icon(Icons.play_circle_outline,
-                            size: 14, color: Colors.grey[600]),
-                        const SizedBox(width: 2),
-                        Text(
-                          _formatCount(video.stat?.view),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Icon(Icons.thumb_up_outlined,
-                            size: 14, color: Colors.grey[600]),
-                        const SizedBox(width: 2),
-                        Text(
-                          _formatCount(video.stat?.like),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),

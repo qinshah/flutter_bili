@@ -46,10 +46,12 @@ class BiliApp extends StatelessWidget {
             primary: const Color(0xFFFB7299),
             surface: Colors.white,
           ),
+          scaffoldBackgroundColor: const Color.fromARGB(255, 234, 232, 232),
+          cardTheme: const CardThemeData(elevation: 0, color: Colors.white),
           // 禁用AppBar变色
           appBarTheme: const AppBarThemeData(
             backgroundColor: Colors.white,
-            scrolledUnderElevation: 0, // 关键：滚动时不要改变 elevation
+            scrolledUnderElevation: 0, // 关键：滚动时不改变 elevation
           ),
           // // 去掉水波纹
           // splashColor: Colors.transparent,
