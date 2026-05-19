@@ -128,7 +128,7 @@ class _RecommendPageState extends State<RecommendPage>
                   CachedNetworkImage(
                     imageUrl: video.cover ?? '',
                     fit: BoxFit.cover,
-                    memCacheWidth: 300,
+                    memCacheWidth: 500,
                     errorWidget: (_, _, _) => Container(
                       color: Colors.grey[300],
                       child: const Icon(Icons.error),
