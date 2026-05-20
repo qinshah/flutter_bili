@@ -52,6 +52,11 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
   }
 
   @override
+  void didPush() {
+    floatingManager.disposeAllFloating();
+  }
+
+  @override
   void didPopNext(nextRoute) => _vm.onPopNext(nextRoute.settings.name);
   @override
   void didPushNext(nextRoute) => _vm.onPushNext(nextRoute.settings.name);

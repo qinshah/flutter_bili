@@ -145,6 +145,8 @@ class VideoPageVm extends ChangeNotifier {
   @override
   Future<void> dispose() async {
     _stopHeartbeat();
+    // 因为小窗需要，这里没有dispose
+    // TODO 在正确的时机dispose播放器
     // await _player?.dispose();
     super.dispose();
   }
