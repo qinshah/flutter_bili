@@ -1,6 +1,8 @@
 # 环境变量
 .vscode/env.json
 
+.kilo/
+
 # Miscellaneous
 *.class
 *.log
