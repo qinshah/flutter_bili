@@ -10,9 +10,11 @@ dependencies:
   flutter:
     sdk: flutter
   u_service:
-    path: ../../FP/u_service
+    # path: ../../FP/u_service
+    git: https://github.com/qinshah/u_service.git
   u_widget:
-    path: ../../FP/u_widget
+    # path: ../../FP/u_widget
+    git: https://github.com/qinshah/u_widget.git
   # 媒体通知.鸿蒙适配
   audio_service:
     git:

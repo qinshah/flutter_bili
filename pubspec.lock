@@ -1102,23 +1102,29 @@ packages:
   u_design:
     dependency: transitive
     description:
-      path: "../../FP/u_design"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "92cfa093b5154a6644091518bede2f0b18039a56"
+      url: "https://github.com/qinshah/u_design.git"
+    source: git
     version: "0.0.1"
   u_service:
     dependency: "direct main"
     description:
-      path: "../../FP/u_service"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "625f8611417a4676b5820e242abe19034b3e2561"
+      url: "https://github.com/qinshah/u_service.git"
+    source: git
     version: "0.0.1"
   u_widget:
     dependency: "direct main"
     description:
-      path: "../../FP/u_widget"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "65bc85961085e4e4facc167334c73d967fb82a84"
+      url: "https://github.com/qinshah/u_widget.git"
+    source: git
     version: "0.0.1"
   universal_io:
     dependency: transitive
