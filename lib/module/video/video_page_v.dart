@@ -70,7 +70,7 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
         height: 150,
         child: _vm.buildVideoView(),
       ),
-      params: FloatingParams(isSnapToEdge: false, isShowLog: true),
+      params: FloatingParams(isSnapToEdge: false),
     );
     floatingManager.createFloating('main', floatingOverlay);
     floatingOverlay.open(context);
