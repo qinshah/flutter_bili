@@ -16,7 +16,6 @@ import 'package:u_widget/u_widget.dart';
 
 import '../../core/http/loading_state.dart';
 import '../../core/http/video_http.dart';
-import '../../service/media_s.dart';
 import 'model/play_url_model.dart';
 import 'model/related_video.dart';
 import 'model/video_detail.dart';
@@ -112,12 +111,12 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
 
   Widget _buildPlayer() {
     return UVideoPlayer(
-      aspectRatio: MediaS.i.getAspectRatio(),
-      onProgressTapDown: MediaS.i.seekByProgress,
-      onTogglePlay: _vm.onPlayOrPause,
+      aspectRatio: _vm.getAspectRatio(),
+      onProgressTapDown: _vm.seekByProgress,
+      onTogglePlay: _vm.playOrPause,
       onDoubleTapDown: (details) => details.kind == PointerDeviceKind.mouse
           ? _fullScreen()
-          : _vm.onPlayOrPause(),
+          : _vm.playOrPause(),
       video: _vm.buildVideoView(),
       topLeft: (_) => const BackButton(color: Colors.white),
       bottomRight: (_) => Row(
@@ -130,21 +129,21 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
         ],
       ),
       bottomLeft: (_) => StreamBuilder<bool>(
-        stream: MediaS.i.playingStream,
-        initialData: MediaS.i.isPlaying,
+        stream: _vm.playingStream,
+        initialData: _vm.isPlaying,
         builder: (_, snap) => IconButton(
           icon: Icon(
             snap.data ?? false ? Icons.pause : Icons.play_arrow,
             color: Colors.white,
           ),
-          onPressed: _vm.onPlayOrPause,
+          onPressed: _vm.playOrPause,
         ),
       ),
       topRight: (_) => Row(
         children: [
           IconButton(
             onPressed: () async {
-              final jsonInfo = (await MediaS.i.getPlayingInfo()).toJson();
+              final jsonInfo = (await _vm.getPlayingInfo()).toJson();
               if (!mounted) return;
               await showDialog<void>(
                 context: context,
@@ -170,7 +169,7 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
       centerLeft: (_) => const Icon(Icons.lock),
       centerRight: (_) => const Icon(Icons.camera),
       center: (context, progress) {
-        final duration = MediaS.i.currentDuration;
+        final duration = _vm.currentDuration;
         final position = duration * progress;
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -184,8 +183,8 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
           ),
         );
       },
-      onProgressDragEnd: MediaS.i.onProgressDragEnd,
-      onProgressDragUpdate: MediaS.i.onProgressDragUpdate,
+      onProgressDragEnd: _vm.onProgressDragEnd,
+      onProgressDragUpdate: _vm.onProgressDragUpdate,
     );
   }
 

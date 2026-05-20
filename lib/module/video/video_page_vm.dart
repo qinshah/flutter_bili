@@ -7,6 +7,7 @@ import 'package:flutter_bili/infrastructure/media_player/fvp_player.dart';
 import 'package:flutter_bili/infrastructure/media_player/media_kit_player.dart';
 import 'package:flutter_bili/infrastructure/media_player/media_player.dart';
 import 'package:flutter_bili/module/setting/model/setting_m.dart';
+import 'package:flutter_bili/module/video/model/playing_info_m.dart';
 import 'package:flutter_bili/route/router.dart';
 import 'package:flutter_bili/service/media_s.dart';
 import 'package:flutter_bili/service/storage_s.dart';
@@ -185,6 +186,52 @@ class VideoPageVm extends ChangeNotifier {
 
   bool _wasPlaying = false;
 
+  Stream<bool> get playingStream =>
+      _player?.playingStream ?? const Stream<bool>.empty();
+
+  Stream<Duration> get positionStream =>
+      _player?.positionStream ?? const Stream<Duration>.empty();
+
+  Stream<Duration> get durationStream =>
+      _player?.durationStream ?? const Stream<Duration>.empty();
+
+  Stream<bool> get bufferingStream =>
+      _player?.bufferingStream ?? const Stream<bool>.empty();
+
+  Duration get currentPosition => _player?.currentPosition ?? Duration.zero;
+
+  Duration get currentDuration =>
+      _player?.currentDuration ?? const Duration(seconds: 1);
+
+  bool get isPlaying => _player?.isPlaying ?? false;
+
+  bool get isBuffering => _player?.isBuffering ?? false;
+  Future<void> seekByProgress(double progress) async {
+    final duration = currentDuration;
+    final position = duration * progress;
+    await _player?.seek(position);
+  }
+
+  double? _draggingProgress;
+
+  double? get draggingProgress => _draggingProgress;
+
+  void onProgressDragUpdate(DragUpdateDetails details, double progress) {
+    final curProgress =
+        _draggingProgress ??
+        currentPosition.inMilliseconds / currentDuration.inMilliseconds;
+    final newP = curProgress + details.delta.dx / 500;
+    _draggingProgress = newP.clamp(0, 1);
+  }
+
+  Future<void> onProgressDragEnd(
+    DragEndDetails details,
+    double progress,
+  ) async {
+    await _player?.seek(currentDuration * (_draggingProgress ?? progress));
+    _draggingProgress = null;
+  }
+
   Future<void> onPushNext(String? next) async {
     _wasPlaying = _player?.isPlaying ?? false;
     // 跳转新视频页时暂停
@@ -193,11 +240,6 @@ class VideoPageVm extends ChangeNotifier {
 
   Future<void> onPopNext(String? next) async {
     if (_wasPlaying) _play();
-  }
-
-  Future<void> onPlayOrPause() async {
-    if (_player == null) return;
-    _player!.isPlaying ? _pause() : _play();
   }
 
   bool isVideoLandscape() {
@@ -210,9 +252,20 @@ class VideoPageVm extends ChangeNotifier {
   }
 
   Future<void> _play() async {
+    await _player?.play();
     final cid = getCid();
     if (cid == null || _player == null) return;
-    await _player!.play();
     _startHeartbeat(bvid: _bvid, cid: cid, player: _player!);
+  }
+
+  double getAspectRatio() => _player?.aspectRatio ?? 16 / 9;
+
+  void playOrPause() {
+    if (_player == null) return;
+    _player!.isPlaying ? _pause() : _play();
+  }
+
+  Future<PlayingInfoM> getPlayingInfo() async {
+    return await _player?.getPlayingInfo() ?? PlayingInfoM();
   }
 }

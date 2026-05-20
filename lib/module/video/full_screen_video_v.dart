@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bili/module/video/video_page_vm.dart';
 import 'package:flutter_bili/module/video/widget/progress_v.dart';
 import 'package:flutter_bili/module/video/widget/quality_button_v.dart';
-import 'package:flutter_bili/service/media_s.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:u_service/u_service.dart';
@@ -21,15 +20,15 @@ class FullScreenVideoV extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(toolbarHeight: 0),
       body: UVideoPlayer(
-        onProgressDragEnd: MediaS.i.onProgressDragEnd,
-        onProgressDragUpdate: MediaS.i.onProgressDragUpdate,
-        aspectRatio: MediaS.i.getAspectRatio(),
-        onProgressTapDown: MediaS.i.seekByProgress,
+        onProgressDragEnd: vm.onProgressDragEnd,
+        onProgressDragUpdate: vm.onProgressDragUpdate,
+        aspectRatio: vm.getAspectRatio(),
+        onProgressTapDown: vm.seekByProgress,
         video: vm.buildVideoView(),
         onDoubleTapDown: (details) => details.kind == PointerDeviceKind.mouse
             ? _exitFullScreen(context)
-            : MediaS.i.playOrPause(),
-        onTogglePlay: MediaS.i.playOrPause,
+            : vm.playOrPause(),
+        onTogglePlay: vm.playOrPause,
         topLeft: (_) => BackButton(
           color: Colors.white,
           onPressed: () => _exitFullScreen(context),
@@ -42,7 +41,7 @@ class FullScreenVideoV extends StatelessWidget {
         centerRight: (_) => const Icon(Icons.camera),
         progressBuilder: (_) => const ProgressV(),
         center: (context, progress) {
-          final duration = MediaS.i.currentDuration;
+          final duration = vm.currentDuration;
           final position = duration * progress;
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -57,14 +56,14 @@ class FullScreenVideoV extends StatelessWidget {
           );
         },
         bottomLeft: (_) => StreamBuilder<bool>(
-          stream: MediaS.i.playingStream,
-          initialData: MediaS.i.isPlaying,
+          stream: vm.playingStream,
+          initialData: vm.isPlaying,
           builder: (_, snap) => IconButton(
             icon: Icon(
               snap.data ?? false ? Icons.pause : Icons.play_arrow,
               color: Colors.white,
             ),
-            onPressed: MediaS.i.playOrPause,
+            onPressed: vm.playOrPause,
           ),
         ),
         bottomRight: (_) => Row(

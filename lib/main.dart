@@ -33,7 +33,6 @@ class BiliApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<MediaS>.value(value: MediaS.i),
         ChangeNotifierProvider<AuthS>.value(value: AuthS.i),
         ChangeNotifierProvider<RecommendVm>.value(value: RecommendVm.i),
         ChangeNotifierProvider<DynamicPageVm>.value(value: DynamicPageVm.i),
