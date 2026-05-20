@@ -9,6 +9,7 @@ import 'package:flutter_bili/module/video/widget/quality_button_v.dart';
 import 'package:flutter_bili/route/global_r_o.dart';
 import 'package:flutter_bili/route/my_route.dart';
 import 'package:flutter_bili/route/router.dart';
+import 'package:flutter_floating/flutter_floating.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:u_service/u_service.dart';
@@ -56,7 +57,18 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
   void didPushNext(nextRoute) => _vm.onPushNext(nextRoute.settings.name);
   @override
   void didPop(previousRoute) {
-    print('弹出本页面，回到之前的页面${previousRoute.settings.name}');
+    floatingManager.disposeAllFloating();
+    final aspectRatio = _vm.getAspectRatio();
+    final floatingOverlay = FloatingOverlay(
+      SizedBox(
+        width: 150 * aspectRatio,
+        height: 150,
+        child: _vm.buildVideoView(),
+      ),
+      params: FloatingParams(isSnapToEdge: false, isShowLog: true),
+    );
+    floatingManager.createFloating('main', floatingOverlay);
+    floatingOverlay.open(context);
   }
 
   @override

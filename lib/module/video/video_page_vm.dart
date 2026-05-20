@@ -145,7 +145,7 @@ class VideoPageVm extends ChangeNotifier {
   @override
   Future<void> dispose() async {
     _stopHeartbeat();
-    await _player?.dispose();
+    // await _player?.dispose();
     super.dispose();
   }
 

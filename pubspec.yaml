@@ -71,6 +71,8 @@ dependencies:
   flutter_svg: ^2.2.4
   brotli: ^0.6.0
   archive: ^4.0.9
+  flutter_in_app_pip: ^1.7.5
+  flutter_floating: ^2.0.2
 
 dependency_overrides:
   path_provider: # 应用可用路径.鸿蒙适配
