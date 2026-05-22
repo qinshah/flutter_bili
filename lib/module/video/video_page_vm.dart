@@ -7,10 +7,14 @@ import 'package:flutter_bili/infrastructure/media_player/fvp_player.dart';
 import 'package:flutter_bili/infrastructure/media_player/media_kit_player.dart';
 import 'package:flutter_bili/infrastructure/media_player/media_player.dart';
 import 'package:flutter_bili/module/setting/model/setting_m.dart';
+import 'package:flutter_bili/module/video/float_video_v.dart';
 import 'package:flutter_bili/module/video/model/playing_info_m.dart';
 import 'package:flutter_bili/route/router.dart';
 import 'package:flutter_bili/service/media_s.dart';
 import 'package:flutter_bili/service/storage_s.dart';
+import 'package:flutter_floating/floating/assist/floating_common_params.dart';
+import 'package:flutter_floating/floating/floating_overlay.dart';
+import 'package:flutter_floating/floating/manager/floating_manager.dart';
 
 import 'model/play_url_model.dart';
 import 'model/video_detail.dart';
@@ -145,9 +149,6 @@ class VideoPageVm extends ChangeNotifier {
   @override
   Future<void> dispose() async {
     _stopHeartbeat();
-    // 因为小窗需要，这里没有dispose
-    // TODO 在正确的时机dispose播放器
-    // await _player?.dispose();
     super.dispose();
   }
 
@@ -234,13 +235,16 @@ class VideoPageVm extends ChangeNotifier {
     _draggingProgress = null;
   }
 
-  Future<void> onPushNext(String? next) async {
+  Future<void> didPushNext(String? next, BuildContext context) async {
     _wasPlaying = _player?.isPlaying ?? false;
-    // 跳转新视频页时暂停
-    if (next == Routes.video) _pause();
+    // 下一个页面是视频页就暂停播放，否则浮窗播放
+    next == Routes.video
+        ? _pause()
+        : _floatVideo(context, createFromPop: false);
   }
 
   Future<void> onPopNext(String? next) async {
+    floatingManager.disposeAllFloating(); // 回到本视频页，不应该再有视频浮窗
     if (_wasPlaying) _play();
   }
 
@@ -269,5 +273,26 @@ class VideoPageVm extends ChangeNotifier {
 
   Future<PlayingInfoM> getPlayingInfo() async {
     return await _player?.getPlayingInfo() ?? PlayingInfoM();
+  }
+
+  void didPop(String? pre, BuildContext context) {
+    // 如果上一个页面不是视频页就需要浮窗播放视频, 否则释放播放器
+    var needFloat = pre != Routes.video;
+    needFloat ? _floatVideo(context, createFromPop: true) : _player?.dispose();
+  }
+
+  void _floatVideo(BuildContext context, {required bool createFromPop}) {
+    floatingManager.disposeAllFloating();
+    if (_player == null) return;
+    final floatingOverlay = FloatingOverlay(
+      FloatVideoV(
+        aspectRatio: getAspectRatio(),
+        player: _player!,
+        createFromPop: createFromPop,
+      ),
+      params: FloatingParams(isSnapToEdge: false),
+    );
+    floatingManager.createFloating('floatingVideo', floatingOverlay);
+    floatingOverlay.open(context);
   }
 }

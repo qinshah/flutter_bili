@@ -52,30 +52,14 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
   }
 
   @override
-  void didPush() {
-    floatingManager.disposeAllFloating();
-  }
+  void didPush() => floatingManager.disposeAllFloating();
 
   @override
   void didPopNext(nextRoute) => _vm.onPopNext(nextRoute.settings.name);
   @override
-  void didPushNext(nextRoute) => _vm.onPushNext(nextRoute.settings.name);
+  void didPushNext(nextRoute) => _vm.didPushNext(nextRoute.settings.name, context);
   @override
-  void didPop(previousRoute) {
-    floatingManager.disposeAllFloating();
-    final aspectRatio = _vm.getAspectRatio();
-    final floatingOverlay = FloatingOverlay(
-      SizedBox(
-        width: 150 * aspectRatio,
-        height: 150,
-        child: _vm.buildVideoView(),
-      ),
-      params: FloatingParams(isSnapToEdge: false),
-    );
-    floatingManager.createFloating('main', floatingOverlay);
-    floatingOverlay.open(context);
-  }
-
+  void didPop(previousRoute) => _vm.didPop(previousRoute.settings.name, context);
   @override
   void dispose() {
     RO.unsubscribe(this);
