@@ -27,8 +27,31 @@ Future<void> main() async {
   runApp(const BiliApp());
 }
 
-class BiliApp extends StatelessWidget {
+class BiliApp extends StatefulWidget {
   const BiliApp({super.key});
+
+  @override
+  State<BiliApp> createState() => _BiliAppState();
+}
+
+class _BiliAppState extends State<BiliApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    MediaS.i.onAppLifecycleChanged(state);
+  } // 防止鸿蒙切后台暂停播放
 
   @override
   Widget build(BuildContext context) {

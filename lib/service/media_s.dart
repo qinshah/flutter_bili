@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
@@ -88,4 +89,24 @@ class MediaS extends BaseAudioHandler with SeekHandler {
   Future<void> seek(Duration position) async => _player?.seek(position);
 
   Future<void> setVolume(double volume) async => _player?.setVolume(volume);
+
+  // 防止切后台暂停播放
+  StreamSubscription<bool>? _backPlayingSub;
+  void onAppLifecycleChanged(AppLifecycleState state) {
+    if (_player == null ||
+        !_player!.isPlaying ||
+        state == AppLifecycleState.resumed) {
+      return;
+    }
+    _backPlayingSub?.cancel();
+    _backPlayingSub = _player!.playingStream.listen((playing) {
+      if (playing) return;
+      _player!.play();
+      _backPlayingSub?.cancel();
+    });
+    // 3秒后停止检查
+    Future.delayed(const Duration(seconds: 3)).then((_) {
+      _backPlayingSub?.cancel();
+    });
+  }
 }
