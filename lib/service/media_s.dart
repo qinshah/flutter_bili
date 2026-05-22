@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter_bili/infrastructure/media_player/media_player.dart';
 import 'package:flutter_bili/module/setting/model/setting_m.dart';
 import 'package:flutter_bili/service/storage_s.dart';
@@ -23,9 +24,57 @@ class MediaS extends BaseAudioHandler with SeekHandler {
     }
   }
 
+  late final AudioSession _audioSession;
+
+  Future<void> init() async {
+    // 初始化 AudioHandler 用于系统媒体通知
+    await AudioService.init(
+      builder: () => this,
+      config: const AudioServiceConfig(
+        androidNotificationChannelId: 'com.ryanheise.myapp.channel.audio',
+        androidNotificationChannelName: 'Audio playback',
+        androidNotificationOngoing: true,
+      ),
+    );
+    _audioSession = await AudioSession.instance;
+    _audioSession.setActive(true);
+  }
+
   MediaPlayer? _player;
 
-  void setPlayer(MediaPlayer? player) => _player = player;
+  StreamSubscription<bool> _playingSubscription = const Stream<bool>.empty()
+      .listen(null);
+
+  void setMedia({required MediaItem media, MediaPlayer? player}) {
+    mediaItem.add(media);
+    _playingSubscription.cancel();
+    _audioSession.setActive(true);
+    if (player != null) _listen(player);
+    _player = player;
+  }
+
+  void _listen(MediaPlayer player) {
+    _playingSubscription = player.playingStream.listen((playing) {
+      playbackState.add(
+        PlaybackState(
+          playing: playing,
+          processingState: playing
+              ? AudioProcessingState.completed
+              : AudioProcessingState.ready,
+          updatePosition: player.currentPosition,
+        ),
+      );
+    });
+    // _posSubscription = player.positionStream.listen((position) {
+    //   playbackState.add(
+    //     PlaybackState(
+    //       controls: [MediaControl.pause, MediaControl.stop],
+    //       processingState: AudioProcessingState.ready,
+    //       playing: true,
+    //     ),
+    //   );
+    // });
+  }
 
   @override
   Future<void> play() async => _player?.play();

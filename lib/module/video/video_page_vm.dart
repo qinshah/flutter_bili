@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bili/core/http/loading_state.dart';
 import 'package:flutter_bili/core/http/video_http.dart';
@@ -138,7 +139,6 @@ class VideoPageVm extends ChangeNotifier {
       // 暂停其他播放器
       await _player?.dispose(); // 释放可能的旧播放器
       _player = newPlayer;
-      MediaS.i.setPlayer(newPlayer);
       await _play();
       notifyListeners();
     } on Exception catch (e) {
@@ -259,6 +259,17 @@ class VideoPageVm extends ChangeNotifier {
 
   Future<void> _play() async {
     await _player?.play();
+    MediaS.i.setMedia(
+      player: _player,
+      media: MediaItem(
+        id: bvid,
+        title: _detail?.title ?? '',
+        artist: _detail?.owner.name ?? '',
+        duration: currentDuration,
+        // 封面为空也不显示
+        artUri: Uri.parse(_detail?.pic ?? ''),
+      ),
+    );
     final cid = getCid();
     if (cid == null || _player == null) return;
     _startHeartbeat(bvid: _bvid, cid: cid, player: _player!);

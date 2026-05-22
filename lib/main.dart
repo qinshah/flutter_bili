@@ -19,6 +19,7 @@ Future<void> main() async {
     StorageS.init(),
     USystemS.initWindowManager(),
     Request().init(),
+    MediaS.i.init(),
   ]);
   MediaS.initLib();
   AuthS.i.loadLocalUsers();
