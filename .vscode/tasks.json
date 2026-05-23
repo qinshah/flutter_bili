@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "build_env",
+      "label": "build env",
       "type": "shell",
       "command": "dart",
       "args": [
@@ -13,12 +13,30 @@
       }
     },
     {
-      "label": "build_hap",
+      "label": "build hap",
       "type": "shell",
       "command": "flutter",
       "args": [
         "build",
         "hap",
+        "--dart-define-from-file=.vscode/env.json"
+      ],
+      "dependsOn": [
+        "build_env"
+      ],
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "build apk",
+      "type": "shell",
+      "command": "flutter",
+      "args": [
+        "build",
+        "apk",
+        "--split-per-abi",
         "--dart-define-from-file=.vscode/env.json"
       ],
       "dependsOn": [

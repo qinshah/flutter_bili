@@ -5,7 +5,7 @@
       "name": "debug",
       "request": "launch",
       "type": "dart",
-      "preLaunchTask": "build_env",
+      "preLaunchTask": "build env",
       "args": [
         "--dart-define-from-file=.vscode/env.json"
       ]
@@ -16,7 +16,7 @@
       "request": "launch",
       "type": "dart",
       "flutterMode": "release",
-      "preLaunchTask": "build_env",
+      "preLaunchTask": "build env",
       "args": [
         "--dart-define-from-file=.vscode/env.json"
       ]
