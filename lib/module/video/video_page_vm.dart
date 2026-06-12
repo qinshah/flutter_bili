@@ -149,9 +149,46 @@ class VideoPageVm extends ChangeNotifier {
     }
   }
 
+  final _volumeStreamCntlr = StreamController<double?>.broadcast();
+  final _brightnessStreamCntlr = StreamController<double?>.broadcast();
+
+  late StreamSubscription<double> _systemBrightnessSubscription;
+  late StreamSubscription<double> _appBrightnessSubscription;
+
+  Stream<double?> get brightnessHubStream => _brightnessStreamCntlr.stream;
+
+  Stream<double?> get volumeHubStream => _volumeStreamCntlr.stream;
+
+  void initUIStream() {
+    FlutterVolumeController.addListener((volume) {
+      _volumeStreamCntlr.add(volume);
+      Future.delayed(const Duration(seconds: 2), () {
+        _volumeStreamCntlr.add(null); // 隐藏显示
+      });
+    });
+    void onBrightnessChanged(double brightness) {
+      _brightnessStreamCntlr.add(brightness);
+      Future.delayed(const Duration(seconds: 2), () {
+        _brightnessStreamCntlr.add(null); // 隐藏显示
+      });
+    }
+
+    _appBrightnessSubscription = ScreenBrightness()
+        .onApplicationScreenBrightnessChanged
+        .listen(onBrightnessChanged);
+    _systemBrightnessSubscription = ScreenBrightness()
+        .onSystemScreenBrightnessChanged
+        .listen(onBrightnessChanged);
+  }
+
   @override
   Future<void> dispose() async {
     _stopHeartbeat();
+    FlutterVolumeController.removeListener();
+    _appBrightnessSubscription.cancel();
+    _systemBrightnessSubscription.cancel();
+    _volumeStreamCntlr.close();
+    _brightnessStreamCntlr.close();
     super.dispose();
   }
 
@@ -322,7 +359,7 @@ class VideoPageVm extends ChangeNotifier {
       final value =
           ((await FlutterVolumeController.getVolume()) ?? 0.5) + delta;
       FlutterVolumeController.updateShowSystemUI(false);
-      FlutterVolumeController.setVolume(value.clamp(0, 1), );
+      FlutterVolumeController.setVolume(value.clamp(0, 1));
     } else {
       // 调整屏幕亮度
       canChangeSystemBrightness ??=

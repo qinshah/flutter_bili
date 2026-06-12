@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bili/module/video/video_page_vm.dart';
+import 'package:flutter_bili/module/video/widget/center_hub_v.dart';
 import 'package:flutter_bili/module/video/widget/progress_v.dart';
 import 'package:flutter_bili/module/video/widget/quality_button_v.dart';
 import 'package:flutter_bili/route/global_r_o.dart';
@@ -80,6 +81,7 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
   }
 
   Future<void> _init() async {
+    _vm.initUIStream();
     await _vm.loadDetail();
     if (!mounted) return;
     await _vm.loadPlayUrl();
@@ -176,21 +178,7 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
           progressBuilder: (context) => const ProgressV(),
           centerLeft: (_) => const Icon(Icons.lock),
           centerRight: (_) => const Icon(Icons.camera),
-          center: (context, progress) {
-            final duration = _vm.currentDuration;
-            final position = duration * progress;
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '${_formatDuration(position)} / ${_formatDuration(duration)}',
-                style: const TextStyle(color: Colors.white, fontSize: 16),
-              ),
-            );
-          },
+          center: (context, progress) => CenterHubV(vm: _vm),
           onProgressDragEnd: _vm.onProgressDragEnd,
           onProgressDragUpdate: _vm.onProgressDragUpdate,
         );
@@ -260,15 +248,15 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
     return n.toString();
   }
 
-  String _formatDuration(Duration d) {
-    final hours = d.inHours;
-    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    if (hours > 0) {
-      return '${hours.toString().padLeft(2, '0')}:$minutes:$seconds';
-    }
-    return '$minutes:$seconds';
-  }
+  // String _formatDuration(Duration d) {
+  //   final hours = d.inHours;
+  //   final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+  //   final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+  //   if (hours > 0) {
+  //     return '${hours.toString().padLeft(2, '0')}:$minutes:$seconds';
+  //   }
+  //   return '$minutes:$seconds';
+  // }
 
   Widget _buildVideoInfo(VideoDetailData detail) {
     return Padding(

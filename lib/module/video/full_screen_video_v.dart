@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bili/module/video/video_page_vm.dart';
+import 'package:flutter_bili/module/video/widget/center_hub_v.dart';
 import 'package:flutter_bili/module/video/widget/progress_v.dart';
 import 'package:flutter_bili/module/video/widget/quality_button_v.dart';
 import 'package:go_router/go_router.dart';
@@ -19,65 +20,54 @@ class FullScreenVideoV extends StatelessWidget {
     final vm = context.read<VideoPageVm>();
     return Scaffold(
       appBar: AppBar(toolbarHeight: 0),
-      body: UVideoPlayer(
-        onProgressDragEnd: vm.onProgressDragEnd,
-        onProgressDragUpdate: vm.onProgressDragUpdate,
-        aspectRatio: vm.getAspectRatio(),
-        onProgressTapDown: vm.seekByProgress,
-        video: vm.buildVideoView(),
-        onDoubleTapDown: (details) => details.kind == PointerDeviceKind.mouse
-            ? _exitFullScreen(context)
-            : vm.playOrPause(),
-        onTogglePlay: vm.playOrPause,
-        topLeft: (_) => BackButton(
-          color: Colors.white,
-          onPressed: () => _exitFullScreen(context),
-        ),
-        topRight: (_) => const Row(
-          children: [Icon(Icons.info), Icon(Icons.more_vert)],
-        ),
-        topCenter: (_) => const Center(child: Text('标题')),
-        centerLeft: (_) => const Icon(Icons.lock),
-        centerRight: (_) => const Icon(Icons.camera),
-        progressBuilder: (_) => const ProgressV(),
-        center: (context, progress) {
-          final duration = vm.currentDuration;
-          final position = duration * progress;
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.black54,
-              borderRadius: BorderRadius.circular(8),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return UVideoPlayer(
+            onVerticalDragUpdate: (details) =>
+                vm.onVerticalDragUpdate(details, constraints.maxWidth),
+            onProgressDragEnd: vm.onProgressDragEnd,
+            onProgressDragUpdate: vm.onProgressDragUpdate,
+            aspectRatio: vm.getAspectRatio(),
+            onProgressTapDown: vm.seekByProgress,
+            video: vm.buildVideoView(),
+            onDoubleTapDown: (details) =>
+                details.kind == PointerDeviceKind.mouse
+                ? _exitFullScreen(context)
+                : vm.playOrPause(),
+            onTogglePlay: vm.playOrPause,
+            topLeft: (_) => BackButton(
+              color: Colors.white,
+              onPressed: () => _exitFullScreen(context),
             ),
-            child: Text(
-              '${_formatDuration(position)} / ${_formatDuration(duration)}',
-              style: const TextStyle(color: Colors.white, fontSize: 16),
+            topRight: (_) =>
+                const Row(children: [Icon(Icons.info), Icon(Icons.more_vert)]),
+            topCenter: (_) => const Center(child: Text('标题')),
+            centerLeft: (_) => const Icon(Icons.lock),
+            centerRight: (_) => const Icon(Icons.camera),
+            progressBuilder: (_) => const ProgressV(),
+            center: (context, progress) => CenterHubV(vm: vm),
+            bottomLeft: (_) => StreamBuilder<bool>(
+              stream: vm.playingStream,
+              initialData: vm.isPlaying,
+              builder: (_, snap) => IconButton(
+                icon: Icon(
+                  snap.data ?? false ? Icons.pause : Icons.play_arrow,
+                  color: Colors.white,
+                ),
+                onPressed: vm.playOrPause,
+              ),
+            ),
+            bottomRight: (_) => Row(
+              children: [
+                QualityButtonV(videoPageVm: context.read<VideoPageVm>()),
+                IconButton(
+                  onPressed: () => _exitFullScreen(context),
+                  icon: const Icon(Icons.fullscreen, color: Colors.white),
+                ),
+              ],
             ),
           );
         },
-        bottomLeft: (_) => StreamBuilder<bool>(
-          stream: vm.playingStream,
-          initialData: vm.isPlaying,
-          builder: (_, snap) => IconButton(
-            icon: Icon(
-              snap.data ?? false ? Icons.pause : Icons.play_arrow,
-              color: Colors.white,
-            ),
-            onPressed: vm.playOrPause,
-          ),
-        ),
-        bottomRight: (_) => Row(
-          children: [
-            QualityButtonV(videoPageVm: context.read<VideoPageVm>()),
-            IconButton(
-              onPressed: () => _exitFullScreen(context),
-              icon: const Icon(
-                Icons.fullscreen,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
