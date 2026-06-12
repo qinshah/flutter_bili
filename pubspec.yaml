@@ -13,8 +13,8 @@ dependencies:
     # path: ../../FP/u_service
     git: https://github.com/qinshah/u_service.git
   u_widget:
-    # path: ../../FP/u_widget
-    git: https://github.com/qinshah/u_widget.git
+    path: ../../FP/u_widget
+    # git: https://github.com/qinshah/u_widget.git
   # 媒体通知.鸿蒙适配
   audio_service:
     git:
@@ -73,6 +73,8 @@ dependencies:
   archive: ^4.0.9
   flutter_in_app_pip: ^1.7.5
   flutter_floating: ^2.0.2
+  flutter_volume_controller: ^2.0.1
+  screen_brightness: ^2.1.9
 
 dependency_overrides:
   path_provider: # 应用可用路径.鸿蒙适配

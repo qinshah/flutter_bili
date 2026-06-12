@@ -57,9 +57,11 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
   @override
   void didPopNext(nextRoute) => _vm.onPopNext(nextRoute.settings.name);
   @override
-  void didPushNext(nextRoute) => _vm.didPushNext(nextRoute.settings.name, context);
+  void didPushNext(nextRoute) =>
+      _vm.didPushNext(nextRoute.settings.name, context);
   @override
-  void didPop(previousRoute) => _vm.didPop(previousRoute.settings.name, context);
+  void didPop(previousRoute) =>
+      _vm.didPop(previousRoute.settings.name, context);
   @override
   void dispose() {
     RO.unsubscribe(this);
@@ -111,81 +113,88 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
   }
 
   Widget _buildPlayer() {
-    return UVideoPlayer(
-      aspectRatio: _vm.getAspectRatio(),
-      onProgressTapDown: _vm.seekByProgress,
-      onTogglePlay: _vm.playOrPause,
-      onDoubleTapDown: (details) => details.kind == PointerDeviceKind.mouse
-          ? _fullScreen()
-          : _vm.playOrPause(),
-      video: _vm.buildVideoView(),
-      topLeft: (_) => const BackButton(color: Colors.white),
-      bottomRight: (_) => Row(
-        children: [
-          Builder(builder: (context) => QualityButtonV(videoPageVm: _vm)),
-          IconButton(
-            onPressed: _fullScreen,
-            icon: const Icon(Icons.fullscreen, color: Colors.white),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxWidth = constraints.maxWidth;
+        return UVideoPlayer(
+          aspectRatio: _vm.getAspectRatio(),
+          onProgressTapDown: _vm.seekByProgress,
+          onTogglePlay: _vm.playOrPause,
+          onVerticalDragUpdate: (details) =>
+              _vm.onVerticalDragUpdate(details, maxWidth),
+          onDoubleTapDown: (details) => details.kind == PointerDeviceKind.mouse
+              ? _fullScreen()
+              : _vm.playOrPause(),
+          video: _vm.buildVideoView(),
+          topLeft: (_) => const BackButton(color: Colors.white),
+          bottomRight: (_) => Row(
+            children: [
+              Builder(builder: (context) => QualityButtonV(videoPageVm: _vm)),
+              IconButton(
+                onPressed: _fullScreen,
+                icon: const Icon(Icons.fullscreen, color: Colors.white),
+              ),
+            ],
           ),
-        ],
-      ),
-      bottomLeft: (_) => StreamBuilder<bool>(
-        stream: _vm.playingStream,
-        initialData: _vm.isPlaying,
-        builder: (_, snap) => IconButton(
-          icon: Icon(
-            snap.data ?? false ? Icons.pause : Icons.play_arrow,
-            color: Colors.white,
+          bottomLeft: (_) => StreamBuilder<bool>(
+            stream: _vm.playingStream,
+            initialData: _vm.isPlaying,
+            builder: (_, snap) => IconButton(
+              icon: Icon(
+                snap.data ?? false ? Icons.pause : Icons.play_arrow,
+                color: Colors.white,
+              ),
+              onPressed: _vm.playOrPause,
+            ),
           ),
-          onPressed: _vm.playOrPause,
-        ),
-      ),
-      topRight: (_) => Row(
-        children: [
-          IconButton(
-            onPressed: () async {
-              final jsonInfo = (await _vm.getPlayingInfo()).toJson();
-              if (!mounted) return;
-              await showDialog<void>(
-                context: context,
-                builder: (ctx) => SimpleDialog(
-                  title: const Text('播放信息'),
-                  children: [
-                    for (final entry in jsonInfo.entries)
-                      ListTile(
-                        title: Text(entry.key),
-                        subtitle: Text(entry.value.toString()),
-                      ),
-                  ],
-                ),
-              );
-            },
-            icon: const Icon(Icons.info, color: Colors.white),
+          topRight: (_) => Row(
+            children: [
+              IconButton(
+                onPressed: () async {
+                  final jsonInfo = (await _vm.getPlayingInfo()).toJson();
+                  if (!mounted) return;
+                  await showDialog<void>(
+                    context: context,
+                    builder: (ctx) => SimpleDialog(
+                      title: const Text('播放信息'),
+                      children: [
+                        for (final entry in jsonInfo.entries)
+                          ListTile(
+                            title: Text(entry.key),
+                            subtitle: Text(entry.value.toString()),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.info, color: Colors.white),
+              ),
+              const Icon(Icons.more_vert, color: Colors.white),
+            ],
           ),
-          const Icon(Icons.more_vert, color: Colors.white),
-        ],
-      ),
-      topCenter: (_) => const Center(child: Text('标题')),
-      progressBuilder: (context) => const ProgressV(),
-      centerLeft: (_) => const Icon(Icons.lock),
-      centerRight: (_) => const Icon(Icons.camera),
-      center: (context, progress) {
-        final duration = _vm.currentDuration;
-        final position = duration * progress;
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.black54,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            '${_formatDuration(position)} / ${_formatDuration(duration)}',
-            style: const TextStyle(color: Colors.white, fontSize: 16),
-          ),
+          topCenter: (_) => const Center(child: Text('标题')),
+          progressBuilder: (context) => const ProgressV(),
+          centerLeft: (_) => const Icon(Icons.lock),
+          centerRight: (_) => const Icon(Icons.camera),
+          center: (context, progress) {
+            final duration = _vm.currentDuration;
+            final position = duration * progress;
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '${_formatDuration(position)} / ${_formatDuration(duration)}',
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+              ),
+            );
+          },
+          onProgressDragEnd: _vm.onProgressDragEnd,
+          onProgressDragUpdate: _vm.onProgressDragUpdate,
         );
       },
-      onProgressDragEnd: _vm.onProgressDragEnd,
-      onProgressDragUpdate: _vm.onProgressDragUpdate,
     );
   }
 

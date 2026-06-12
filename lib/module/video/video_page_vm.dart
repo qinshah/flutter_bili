@@ -16,6 +16,9 @@ import 'package:flutter_bili/service/storage_s.dart';
 import 'package:flutter_floating/floating/assist/floating_common_params.dart';
 import 'package:flutter_floating/floating/floating_overlay.dart';
 import 'package:flutter_floating/floating/manager/floating_manager.dart';
+import 'package:flutter_volume_controller/flutter_volume_controller.dart';
+import 'package:os_type/os_type.dart';
+import 'package:screen_brightness/screen_brightness.dart';
 
 import 'model/play_url_model.dart';
 import 'model/video_detail.dart';
@@ -306,4 +309,33 @@ class VideoPageVm extends ChangeNotifier {
     floatingManager.createFloating('floatingVideo', floatingOverlay);
     floatingOverlay.open(context);
   }
+
+  Future<void> onVerticalDragUpdate(
+    DragUpdateDetails details,
+    double maxWidth,
+  ) async {
+    var dx = details.localPosition.dx;
+    final k = OS.isPCOS ? 0.002 : 0.01;
+    var delta = -k * details.delta.dy;
+    if (dx > maxWidth / 2) {
+      // 调整音量
+      final value =
+          ((await FlutterVolumeController.getVolume()) ?? 0.5) + delta;
+      FlutterVolumeController.updateShowSystemUI(false);
+      FlutterVolumeController.setVolume(value.clamp(0, 1), );
+    } else {
+      // 调整屏幕亮度
+      canChangeSystemBrightness ??=
+          await ScreenBrightness().canChangeSystemBrightness;
+      if (canChangeSystemBrightness ?? false) {
+        final value = ((await ScreenBrightness().system) + delta);
+        ScreenBrightness().setSystemScreenBrightness(value.clamp(0, 1));
+      } else {
+        final value = (await ScreenBrightness().application) + delta;
+        ScreenBrightness().setApplicationScreenBrightness(value.clamp(0, 1));
+      }
+    }
+  }
+
+  static bool? canChangeSystemBrightness;
 }
