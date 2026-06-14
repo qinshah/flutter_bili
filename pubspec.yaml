@@ -77,6 +77,11 @@ dependencies:
   screen_brightness: ^2.1.9
 
 dependency_overrides:
+  screen_brightness_platform_interface:
+    git:
+      url: https://github.com/qinshah/screen_brightness.git
+      ref: fork # 修复鸿蒙获取亮度失败
+      path: screen_brightness_platform_interface
   path_provider: # 应用可用路径.鸿蒙适配
     git:
       url: https://gitcode.com/openharmony-tpc/flutter_packages.git
@@ -154,4 +159,3 @@ icons_launcher:
       enable: true
     linux:
       enable: true
-    

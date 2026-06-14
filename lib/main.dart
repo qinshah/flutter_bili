@@ -6,6 +6,7 @@ import 'package:flutter_bili/route/router.dart';
 import 'package:flutter_bili/service/auth_s.dart';
 import 'package:flutter_bili/service/media_s.dart';
 import 'package:flutter_bili/service/storage_s.dart';
+import 'package:os_type/os_type.dart';
 import 'package:provider/provider.dart';
 // import 'package:rinf/rinf.dart';
 import 'package:u_service/u_service.dart';
@@ -20,6 +21,7 @@ Future<void> main() async {
     USystemS.initWindowManager(),
     Request().init(),
     MediaS.i.init(),
+    if (OS.isHarmony) OS.initHarmonyDeviceType(),
   ]);
   MediaS.initLib();
   AuthS.i.loadLocalUsers();

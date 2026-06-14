@@ -967,12 +967,13 @@ packages:
     source: hosted
     version: "2.1.3"
   screen_brightness_platform_interface:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: screen_brightness_platform_interface
-      sha256: "59d50850d6735d677780fc7359c8e997d0ff6df91c8465161c9e617a7b0a11d8"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
+      path: screen_brightness_platform_interface
+      ref: fork
+      resolved-ref: "4d838d33237e9d700856e7f3ad7553de25f859bb"
+      url: "https://github.com/qinshah/screen_brightness.git"
+    source: git
     version: "2.1.1"
   screen_brightness_windows:
     dependency: transitive

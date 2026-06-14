@@ -152,41 +152,49 @@ class VideoPageVm extends ChangeNotifier {
   final _volumeStreamCntlr = StreamController<double?>.broadcast();
   final _brightnessStreamCntlr = StreamController<double?>.broadcast();
 
-  late StreamSubscription<double> _systemBrightnessSubscription;
-  late StreamSubscription<double> _appBrightnessSubscription;
+  late StreamSubscription<double> _brightnessSubscription;
 
   Stream<double?> get brightnessHubStream => _brightnessStreamCntlr.stream;
 
   Stream<double?> get volumeHubStream => _volumeStreamCntlr.stream;
 
+  Timer _hideTimer = Timer(Duration.zero, () {})..cancel();
+
+  void _scheduleHide() {
+    _hideTimer.cancel();
+    _hideTimer = Timer(const Duration(seconds: 2), () {
+      _volumeStreamCntlr.add(null); // 隐藏显示
+      _brightnessStreamCntlr.add(null); // 隐藏显示
+    });
+  }
+
   void initUIStream() {
     FlutterVolumeController.addListener((volume) {
       _volumeStreamCntlr.add(volume);
-      Future.delayed(const Duration(seconds: 2), () {
-        _volumeStreamCntlr.add(null); // 隐藏显示
-      });
+      _scheduleHide();
     });
     void onBrightnessChanged(double brightness) {
       _brightnessStreamCntlr.add(brightness);
-      Future.delayed(const Duration(seconds: 2), () {
-        _brightnessStreamCntlr.add(null); // 隐藏显示
-      });
+      _scheduleHide();
     }
 
-    _appBrightnessSubscription = ScreenBrightness()
-        .onApplicationScreenBrightnessChanged
-        .listen(onBrightnessChanged);
-    _systemBrightnessSubscription = ScreenBrightness()
-        .onSystemScreenBrightnessChanged
-        .listen(onBrightnessChanged);
+    try {
+      _brightnessSubscription = ScreenBrightness()
+          .onApplicationScreenBrightnessChanged
+          .listen(onBrightnessChanged);
+      _brightnessSubscription = ScreenBrightness()
+          .onSystemScreenBrightnessChanged
+          .listen(onBrightnessChanged);
+    } catch (e) {
+      print('亮度监听失败: $e');
+    }
   }
 
   @override
   Future<void> dispose() async {
     _stopHeartbeat();
     FlutterVolumeController.removeListener();
-    _appBrightnessSubscription.cancel();
-    _systemBrightnessSubscription.cancel();
+    _brightnessSubscription.cancel();
     _volumeStreamCntlr.close();
     _brightnessStreamCntlr.close();
     super.dispose();
@@ -352,7 +360,7 @@ class VideoPageVm extends ChangeNotifier {
     double maxWidth,
   ) async {
     var dx = details.localPosition.dx;
-    final k = OS.isPCOS ? 0.002 : 0.01;
+    final k = OS.isPCOS ? 0.002 : 0.006;
     var delta = -k * details.delta.dy;
     if (dx > maxWidth / 2) {
       // 调整音量
