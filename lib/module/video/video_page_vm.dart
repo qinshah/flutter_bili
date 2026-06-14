@@ -163,9 +163,13 @@ class VideoPageVm extends ChangeNotifier {
   void _scheduleHide() {
     _hideTimer.cancel();
     _hideTimer = Timer(const Duration(seconds: 2), () {
-      _volumeStreamCntlr.add(null); // 隐藏显示
-      _brightnessStreamCntlr.add(null); // 隐藏显示
+      _clearCenterHub();
     });
+  }
+
+  void _clearCenterHub() {
+    _volumeStreamCntlr.add(null);
+    _brightnessStreamCntlr.add(null);
   }
 
   void initUIStream() {
@@ -355,28 +359,46 @@ class VideoPageVm extends ChangeNotifier {
     floatingOverlay.open(context);
   }
 
+  double _dyOnStart = 0;
+  double _volumeOnStart = 0.5;
+  double _brightnessOnStart = 0.5;
+
+  void onVerticalDragStart(DragStartDetails details) {
+    _dyOnStart = details.localPosition.dy;
+    _clearCenterHub();
+    FlutterVolumeController.updateShowSystemUI(false);
+    FlutterVolumeController.getVolume().then(
+      (value) => _volumeOnStart = value ?? 0.5,
+    );
+    ScreenBrightness().application.then((value) => _brightnessOnStart = value);
+    ScreenBrightness().system.then((value) => _brightnessOnStart = value);
+  }
+
+  void onVerticalDragEnd(DragEndDetails details) {
+    FlutterVolumeController.updateShowSystemUI(true);
+  }
+
   Future<void> onVerticalDragUpdate(
     DragUpdateDetails details,
     double maxWidth,
   ) async {
-    var dx = details.localPosition.dx;
+    final dx = details.localPosition.dx;
+    final distance = details.localPosition.dy - _dyOnStart;
     final k = OS.isPCOS ? 0.002 : 0.006;
-    var delta = -k * details.delta.dy;
+    var delta = -k * distance;
     if (dx > maxWidth / 2) {
       // 调整音量
-      final value =
-          ((await FlutterVolumeController.getVolume()) ?? 0.5) + delta;
-      FlutterVolumeController.updateShowSystemUI(false);
+      final value = _volumeOnStart + delta;
       FlutterVolumeController.setVolume(value.clamp(0, 1));
     } else {
       // 调整屏幕亮度
       canChangeSystemBrightness ??=
           await ScreenBrightness().canChangeSystemBrightness;
       if (canChangeSystemBrightness ?? false) {
-        final value = ((await ScreenBrightness().system) + delta);
+        final value = _brightnessOnStart + delta;
         ScreenBrightness().setSystemScreenBrightness(value.clamp(0, 1));
       } else {
-        final value = (await ScreenBrightness().application) + delta;
+        final value = _brightnessOnStart + delta;
         ScreenBrightness().setApplicationScreenBrightness(value.clamp(0, 1));
       }
     }

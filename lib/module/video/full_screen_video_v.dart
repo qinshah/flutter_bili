@@ -25,6 +25,8 @@ class FullScreenVideoV extends StatelessWidget {
           return UVideoPlayer(
             onVerticalDragUpdate: (details) =>
                 vm.onVerticalDragUpdate(details, constraints.maxWidth),
+            onVerticalDragStart: vm.onVerticalDragStart,
+            onVerticalDragEnd: vm.onVerticalDragEnd,
             onProgressDragEnd: vm.onProgressDragEnd,
             onProgressDragUpdate: vm.onProgressDragUpdate,
             aspectRatio: vm.getAspectRatio(),

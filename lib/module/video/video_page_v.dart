@@ -124,6 +124,8 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
           onTogglePlay: _vm.playOrPause,
           onVerticalDragUpdate: (details) =>
               _vm.onVerticalDragUpdate(details, maxWidth),
+          onVerticalDragStart: _vm.onVerticalDragStart,
+          onVerticalDragEnd: _vm.onVerticalDragEnd,
           onDoubleTapDown: (details) => details.kind == PointerDeviceKind.mouse
               ? _fullScreen()
               : _vm.playOrPause(),
