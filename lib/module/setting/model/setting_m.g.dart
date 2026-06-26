@@ -3,92 +3,42 @@
 part of 'setting_m.dart';
 
 // **************************************************************************
-// TypeAdapterGenerator
+// JsonSerializableGenerator
 // **************************************************************************
 
-class SettingMAdapter extends TypeAdapter<SettingM> {
-  @override
-  final typeId = 1;
+SettingM _$SettingMFromJson(Map<String, dynamic> json) => SettingM(
+  playerKernel:
+      $enumDecodeNullable(_$PlayerKernelEnumMap, json['playerKernel']) ??
+      PlayerKernel.mpv,
+  enableDanmaku: json['enableDanmaku'] as bool? ?? true,
+  videoQuality:
+      $enumDecodeNullable(_$VideoQualityMEnumMap, json['videoQuality']) ??
+      VideoQualityM.a1080p30,
+  autoPlay: json['autoPlay'] as bool? ?? false,
+  muteByDefault: json['muteByDefault'] as bool? ?? false,
+);
 
-  @override
-  SettingM read(BinaryReader reader) {
-    final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{
-      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
-    };
-    return SettingM(
-      playerLibrary: fields[0] == null
-          ? PlayerLibraryM.mediaKit
-          : fields[0] as PlayerLibraryM,
-      enableDanmaku: fields[1] == null ? true : fields[1] as bool,
-      videoQuality: fields[2] == null
-          ? VideoQualityM.a1080p30
-          : fields[2] as VideoQualityM,
-      autoPlay: fields[3] == null ? false : fields[3] as bool,
-      muteByDefault: fields[4] == null ? false : fields[4] as bool,
-    );
-  }
+Map<String, dynamic> _$SettingMToJson(SettingM instance) => <String, dynamic>{
+  'playerKernel': _$PlayerKernelEnumMap[instance.playerKernel]!,
+  'enableDanmaku': instance.enableDanmaku,
+  'videoQuality': _$VideoQualityMEnumMap[instance.videoQuality]!,
+  'autoPlay': instance.autoPlay,
+  'muteByDefault': instance.muteByDefault,
+};
 
-  @override
-  void write(BinaryWriter writer, SettingM obj) {
-    writer
-      ..writeByte(5)
-      ..writeByte(0)
-      ..write(obj.playerLibrary)
-      ..writeByte(1)
-      ..write(obj.enableDanmaku)
-      ..writeByte(2)
-      ..write(obj.videoQuality)
-      ..writeByte(3)
-      ..write(obj.autoPlay)
-      ..writeByte(4)
-      ..write(obj.muteByDefault);
-  }
+const _$PlayerKernelEnumMap = {
+  PlayerKernel.mpv: 'mpv',
+  PlayerKernel.mdk: 'mdk',
+};
 
-  @override
-  int get hashCode => typeId.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is SettingMAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
-}
-
-class PlayerLibraryMAdapter extends TypeAdapter<PlayerLibraryM> {
-  @override
-  final typeId = 2;
-
-  @override
-  PlayerLibraryM read(BinaryReader reader) {
-    switch (reader.readByte()) {
-      case 0:
-        return PlayerLibraryM.mediaKit;
-      case 1:
-        return PlayerLibraryM.fvp;
-      default:
-        return PlayerLibraryM.mediaKit;
-    }
-  }
-
-  @override
-  void write(BinaryWriter writer, PlayerLibraryM obj) {
-    switch (obj) {
-      case PlayerLibraryM.mediaKit:
-        writer.writeByte(0);
-      case PlayerLibraryM.fvp:
-        writer.writeByte(1);
-    }
-  }
-
-  @override
-  int get hashCode => typeId.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is PlayerLibraryMAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
-}
+const _$VideoQualityMEnumMap = {
+  VideoQualityM.a8k60: '8K60',
+  VideoQualityM.a8k30: '8K30',
+  VideoQualityM.a4k60: '4K60',
+  VideoQualityM.a4k30: '4K30',
+  VideoQualityM.a1080p60: '1080P60',
+  VideoQualityM.a1080p30: '1080P30',
+  VideoQualityM.a720p: '720P',
+  VideoQualityM.a480p: '480P',
+  VideoQualityM.a360p: '360P',
+};

@@ -42,7 +42,7 @@ class SettingsPage extends StatelessWidget {
           _buildListTile(
             icon: const Icon(Icons.play_circle_outline),
             title: '播放设置',
-            subtitle: '播放器库、弹幕、画质等',
+            subtitle: '播放器内核、弹幕、画质等',
             onTap: () => context.push(Routes.playerSetting),
           ),
           const SizedBox(height: 16),

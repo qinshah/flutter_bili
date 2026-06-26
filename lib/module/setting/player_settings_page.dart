@@ -72,11 +72,9 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
 
   Widget _buildPlayerLibraryTile() {
     return ListTile(
-      title: const Text('播放器库'),
+      title: const Text('播放器内核'),
       subtitle: Text(
-        _settings.playerLibrary == PlayerLibraryM.mediaKit
-            ? 'media_kit'
-            : 'fvp',
+        _settings.playerKernel.name,
       ),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: () => _showPlayerLibraryDialog(),
@@ -93,35 +91,26 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
   }
 
   void _showPlayerLibraryDialog() {
-    PlayerLibraryM selectedLibrary = _settings.playerLibrary;
+    PlayerKernel selectedLibrary = _settings.playerKernel;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('选择播放器库'),
+        title: const Text('选择播放器内核'),
         content: StatefulBuilder(
           builder: (context, setState) => Column(
             mainAxisSize: MainAxisSize.min,
-            children: [
-              RadioListTile<PlayerLibraryM>(
-                title: const Text('media_kit'),
-                value: PlayerLibraryM.mediaKit,
+            children: List.generate(PlayerKernel.values.length, (index) {
+              return RadioListTile<PlayerKernel>(
+                title: Text(PlayerKernel.values[index].name),
+                value: PlayerKernel.values[index],
                 groupValue: selectedLibrary,
                 onChanged: (value) {
                   if (value == null) return;
                   setState(() => selectedLibrary = value);
                 },
-              ),
-              RadioListTile<PlayerLibraryM>(
-                title: const Text('fvp'),
-                value: PlayerLibraryM.fvp,
-                groupValue: selectedLibrary,
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() => selectedLibrary = value);
-                },
-              ),
-            ],
+              );
+            }),
           ),
         ),
         actions: [
@@ -133,13 +122,13 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
             onPressed: () async {
               Navigator.pop(context);
               await StorageS.saveSettings(
-                _settings.copyWith(playerLibrary: selectedLibrary!),
+                _settings.copyWith(playerKernel: selectedLibrary!),
               );
               MediaS.initLib(selectedLibrary);
               _loadSettings();
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('播放器库已更新')),
+                const SnackBar(content: Text('播放器内核已更新')),
               );
             },
             child: const Text('确定'),

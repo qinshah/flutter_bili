@@ -15,12 +15,12 @@ class MediaS extends BaseAudioHandler with SeekHandler {
 
   static final MediaS i = MediaS._();
 
-  static void initLib([PlayerLibraryM? playerLibrary]) {
-    playerLibrary ??= StorageS.getSetting().playerLibrary;
+  static void initLib([PlayerKernel? playerLibrary]) {
+    playerLibrary ??= StorageS.getSetting().playerKernel;
     switch (playerLibrary) {
-      case PlayerLibraryM.mediaKit:
+      case PlayerKernel.mpv:
         MediaKit.ensureInitialized();
-      case PlayerLibraryM.fvp:
+      case PlayerKernel.mdk:
         fvp.registerWith();
     }
   }

@@ -1,36 +1,31 @@
+// ignore_for_file: unnecessary_this
+
 import 'package:flutter_bili/module/video/model/video_quality_m.dart';
-import 'package:hive_ce/hive_ce.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'setting_m.g.dart';
 
-@HiveType(typeId: 2)
-enum PlayerLibraryM {
-  @HiveField(0)
-  mediaKit,
-  @HiveField(1)
-  fvp,
+enum PlayerKernel {
+  mpv,
+  mdk,
 }
 
-@HiveType(typeId: 1)
+@JsonSerializable()
 class SettingM {
-  @HiveField(0)
-  PlayerLibraryM playerLibrary;
+  @JsonKey(name: 'playerKernel')
+  PlayerKernel playerKernel;
 
-  @HiveField(1)
   bool enableDanmaku;
 
-  @HiveField(2)
   VideoQualityM videoQuality;
 
-  @HiveField(3)
   bool autoPlay;
 
-  @HiveField(4)
   bool muteByDefault;
 
   /// 默认设置
   SettingM({
-    this.playerLibrary = PlayerLibraryM.mediaKit,
+    this.playerKernel = PlayerKernel.mpv,
     this.enableDanmaku = true,
     this.videoQuality = VideoQualityM.a1080p30,
     this.autoPlay = false,
@@ -38,14 +33,14 @@ class SettingM {
   });
 
   SettingM copyWith({
-    PlayerLibraryM? playerLibrary,
+    PlayerKernel? playerKernel,
     bool? enableDanmaku,
     VideoQualityM? videoQuality,
     bool? autoPlay,
     bool? muteByDefault,
   }) {
     return SettingM(
-      playerLibrary: playerLibrary ?? this.playerLibrary,
+      playerKernel: playerKernel ?? this.playerKernel,
       enableDanmaku: enableDanmaku ?? this.enableDanmaku,
       videoQuality: videoQuality ?? this.videoQuality,
       autoPlay: autoPlay ?? this.autoPlay,
@@ -53,29 +48,8 @@ class SettingM {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'playerLibrary': playerLibrary.name,
-      'enableDanmaku': enableDanmaku,
-      'videoQuality': videoQuality.name,
-      'autoPlay': autoPlay,
-      'muteByDefault': muteByDefault,
-    };
-  }
+  factory SettingM.fromJson(Map<String, dynamic> json) =>
+      _$SettingMFromJson(json);
 
-  factory SettingM.fromJson(Map<String, dynamic> json) {
-    return SettingM(
-      playerLibrary: PlayerLibraryM.values.firstWhere(
-        (e) => e.name == json['playerLibrary'],
-        orElse: () => PlayerLibraryM.mediaKit,
-      ),
-      enableDanmaku: json['enableDanmaku'] ?? true,
-      videoQuality: VideoQualityM.values.firstWhere(
-        (e) => e.name == json['videoQuality'],
-        orElse: () => VideoQualityM.a1080p30,
-      ),
-      autoPlay: json['autoPlay'] ?? false,
-      muteByDefault: json['muteByDefault'] ?? false,
-    );
-  }
+  Map<String, dynamic> toJson() => _$SettingMToJson(this);
 }

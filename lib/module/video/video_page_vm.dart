@@ -119,14 +119,14 @@ class VideoPageVm extends ChangeNotifier {
     final MediaPlayer newPlayer;
     final setting = StorageS.getSetting();
     try {
-      switch (setting.playerLibrary) {
-        case PlayerLibraryM.mediaKit:
+      switch (setting.playerKernel) {
+        case PlayerKernel.mpv:
           newPlayer = await MediaKitPlayer.create(
             playUrl,
             headers: _headers,
             startPosition: startPosition,
           );
-        case PlayerLibraryM.fvp:
+        case PlayerKernel.mdk:
           newPlayer = await FvpPlayer.create(
             playUrl,
             headers: _headers,
