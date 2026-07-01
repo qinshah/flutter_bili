@@ -51,6 +51,18 @@ class VideoPageVm extends ChangeNotifier {
   LoadingState? get detailState => _detailState;
   LoadingState? get playUrlState => _playUrlState;
 
+  // ── Tab state ───────────────────────────────────────────────────────────
+
+  int _currentTabIndex = 0;
+
+  int get currentTabIndex => _currentTabIndex;
+
+  void switchTab(int index) {
+    if (index == _currentTabIndex || index < 0 || index > 1) return;
+    _currentTabIndex = index;
+    notifyListeners();
+  }
+
   /// 获取指定 quality code 的画质描述
   String? getQualityDesc(int qn) {
     final formats = _playUrl?.supportFormats;

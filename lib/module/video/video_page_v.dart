@@ -44,7 +44,7 @@ class VideoPageV extends StatefulWidget {
   State<VideoPageV> createState() => _VideoPageVState();
 }
 
-class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
+class _VideoPageVState extends State<VideoPageV> with MyRouteAware, TickerProviderStateMixin {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -65,11 +65,21 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
       _vm.didPop(previousRoute.settings.name, context);
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
+    _tabController.dispose();
+    _nestedScrollController.removeListener(_onScrollChanged);
+    _nestedScrollController.dispose();
     RO.unsubscribe(this);
     super.dispose();
   }
 
   late final VideoPageVm _vm = context.read<VideoPageVm>();
+
+  // Tab and scroll state
+  late final TabController _tabController;
+  final ScrollController _nestedScrollController = ScrollController();
+  bool _isCollapsed = false;
+
   // 相关推荐视频
   List<RelatedVideoItem> _relatedVideos = [];
   bool _loadingRelated = false;
@@ -77,7 +87,24 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_onTabChanged);
+    _nestedScrollController.addListener(_onScrollChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) => _init());
+  }
+
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging) {
+      _vm.switchTab(_tabController.index);
+    }
+  }
+
+  void _onScrollChanged() {
+    final collapsed = _nestedScrollController.hasClients &&
+        _nestedScrollController.offset > 50;
+    if (collapsed != _isCollapsed) {
+      setState(() => _isCollapsed = collapsed);
+    }
   }
 
   Future<void> _init() async {
@@ -188,6 +215,74 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
     );
   }
 
+  // ── Collapsible video space for SliverAppBar ──────────────────────────────
+
+  Widget _buildFlexibleVideoSpace(double expandedHeight, VideoDetailData detail) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCollapsed =
+            constraints.maxHeight <= kToolbarHeight + 20;
+
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            // Video player (hidden when collapsed to save resources)
+            if (!isCollapsed)
+              _buildPlayer()
+            else
+              Container(color: Colors.black),
+
+            // Play button overlay when collapsed and paused
+            if (isCollapsed && !_vm.isPlaying)
+              GestureDetector(
+                onTap: _expandAndPlay,
+                child: Container(
+                  color: Colors.black87,
+                  child: const Center(
+                    child: Icon(
+                      Icons.play_arrow,
+                      color: Colors.white,
+                      size: 36,
+                    ),
+                  ),
+                ),
+              ),
+
+            // Collapsed title
+            if (isCollapsed)
+              Positioned(
+                top: MediaQuery.of(context).padding.top,
+                left: 52,
+                right: 8,
+                height: kToolbarHeight,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    detail.title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _expandAndPlay() {
+    _vm.playOrPause();
+    _nestedScrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
   Future<void> _fullScreen() async {
     await Future.wait([
       USystemS.fullScreen(landscape: _vm.isVideoLandscape()),
@@ -276,19 +371,6 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
           _buildStatRow(detail.stat),
           const SizedBox(height: 12),
           _buildOwnerRow(detail),
-          if (detail.desc.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Text(
-              detail.desc,
-              style: const TextStyle(fontSize: 13, color: Colors.black87),
-              maxLines: 5,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-          if (detail.pages.length > 1) ...[
-            const SizedBox(height: 12),
-            _buildPagesList(detail),
-          ],
         ],
       ),
     );
@@ -403,15 +485,51 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
   }
 
   Widget _buildNarrowLayout(VideoDetailData detail) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    final videoHeight = MediaQuery.of(context).size.width / _vm.getAspectRatio();
+
+    // Sync VM tab index -> TabController
+    if (_tabController.index != _vm.currentTabIndex &&
+        !_tabController.indexIsChanging) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _tabController.animateTo(_vm.currentTabIndex);
+      });
+    }
+
+    return NestedScrollView(
+      controller: _nestedScrollController,
+      headerSliverBuilder: (context, innerBoxIsScrolled) {
+        return [
+          SliverAppBar(
+            expandedHeight: videoHeight,
+            collapsedHeight: kToolbarHeight,
+            pinned: true,
+            backgroundColor: Colors.black,
+            flexibleSpace: _buildFlexibleVideoSpace(videoHeight, detail),
+          ),
+          SliverToBoxAdapter(child: _buildPlayUrlError()),
+          SliverToBoxAdapter(child: _buildVideoInfo(detail)),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _SliverTabDelegate(
+              child: Container(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                child: TabBar(
+                  controller: _tabController,
+                  tabs: const [
+                    Tab(text: '简介'),
+                    Tab(text: '评论'),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ];
+      },
+      body: TabBarView(
+        controller: _tabController,
         children: [
-          _buildPlayer(),
-          _buildPlayUrlError(),
-          _buildVideoInfo(detail),
-          const Divider(height: 1),
-          _buildTabSection(detail),
+          _buildIntroTabContent(detail),
+          _buildReplyTabContent(),
         ],
       ),
     );
@@ -421,21 +539,10 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Left: player + info + tabs
+        // Left: player + info + tabs (reuse nested scroll layout)
         Expanded(
           flex: 3,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildPlayer(),
-                _buildPlayUrlError(),
-                _buildVideoInfo(detail),
-                const Divider(height: 1),
-                _buildTabSection(detail),
-              ],
-            ),
-          ),
+          child: _buildNarrowLayout(detail),
         ),
         // Right: related videos
         Expanded(flex: 1, child: _buildRelatedVideosPanel()),
@@ -443,36 +550,17 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
     );
   }
 
-  /// Tab区域（简介和评论）
-  Widget _buildTabSection(VideoDetailData detail) {
-    return DefaultTabController(
-      length: 2,
-      child: Column(
-        children: [
-          const TabBar(
-            tabs: [
-              Tab(text: '简介'),
-              Tab(text: '评论'),
-            ],
-          ),
-          SizedBox(
-            height: 400,
-            child: TabBarView(
-              children: [_buildIntroTab(detail), _buildReplyTab()],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 简介Tab
-  Widget _buildIntroTab(VideoDetailData detail) {
+  /// 简介 Tab 内容
+  Widget _buildIntroTabContent(VideoDetailData detail) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         if (detail.desc.isNotEmpty) ...[
           Text(detail.desc, style: const TextStyle(fontSize: 14)),
+          const SizedBox(height: 16),
+        ],
+        if (detail.pages.length > 1) ...[
+          _buildPagesList(detail),
           const SizedBox(height: 16),
         ],
         // 相关推荐（窄屏时显示）
@@ -488,20 +576,22 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
     );
   }
 
-  /// 评论Tab
-  Widget _buildReplyTab() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.chat_bubble_outline, size: 48, color: Colors.grey),
-            SizedBox(height: 16),
-            Text('评论区功能待实现', style: TextStyle(color: Colors.grey)),
-          ],
+  /// 评论 Tab 内容
+  Widget _buildReplyTabContent() {
+    return ListView(
+      children: [
+        const SizedBox(height: 200),
+        const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.chat_bubble_outline, size: 48, color: Colors.grey),
+              SizedBox(height: 16),
+              Text('评论区功能待实现', style: TextStyle(color: Colors.grey)),
+            ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -666,5 +756,33 @@ class _VideoPageVState extends State<VideoPageV> with MyRouteAware {
       );
     }
     return const SizedBox.shrink();
+  }
+}
+
+// ── SliverPersistentHeaderDelegate for the tab bar ───────────────────────────
+
+class _SliverTabDelegate extends SliverPersistentHeaderDelegate {
+  _SliverTabDelegate({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return child;
+  }
+
+  @override
+  double get maxExtent => 48;
+
+  @override
+  double get minExtent => 48;
+
+  @override
+  bool shouldRebuild(_SliverTabDelegate oldDelegate) {
+    return child != oldDelegate.child;
   }
 }
