@@ -1,9 +1,6 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'model/setting_m.dart';
 import '../../service/storage_s.dart';
 
 class DataSettingsPage extends StatefulWidget {
@@ -14,26 +11,6 @@ class DataSettingsPage extends StatefulWidget {
 }
 
 class _DataSettingsPageState extends State<DataSettingsPage> {
-  late SettingM _settings;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSettings();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loadSettings();
-  }
-
-  void _loadSettings() {
-    setState(() {
-      _settings = StorageS.getSetting();
-    });
-  }
-
   Future<void> _copy(String json) async {
     await Clipboard.setData(ClipboardData(text: json));
     if (mounted) {
@@ -90,10 +67,6 @@ class _DataSettingsPageState extends State<DataSettingsPage> {
     );
   }
 
-  String _formatJson(Map<String, dynamic> json) {
-    return JsonEncoder.withIndent('  ').convert(json);
-  }
-
   Future<void> _showImportDialog() async {
     final cntlr = TextEditingController();
     await showDialog(
@@ -137,10 +110,7 @@ class _DataSettingsPageState extends State<DataSettingsPage> {
           FilledButton(
             onPressed: () {
               try {
-                final jsonData = jsonDecode(cntlr.text);
-                final newSettings = SettingM.fromJson(jsonData);
-                StorageS.saveSettings(newSettings);
-                _loadSettings();
+                StorageS.importSettings(cntlr.text);
                 Navigator.pop(context);
                 ScaffoldMessenger.of(
                   context,
@@ -160,7 +130,7 @@ class _DataSettingsPageState extends State<DataSettingsPage> {
   }
 
   void _showExportDialog() {
-    final json = _formatJson(_settings.toJson());
+    final json = StorageS.exportSettings();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -212,8 +182,7 @@ class _DataSettingsPageState extends State<DataSettingsPage> {
             ),
             onPressed: () async {
               Navigator.pop(context);
-              await StorageS.saveSettings(SettingM());
-              _loadSettings();
+              await StorageS.resetSettings();
               if (!context.mounted) return;
               ScaffoldMessenger.of(
                 context,

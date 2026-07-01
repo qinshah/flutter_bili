@@ -7,12 +7,11 @@ import 'package:flutter_bili/core/http/video_http.dart';
 import 'package:flutter_bili/infrastructure/media_player/fvp_player.dart';
 import 'package:flutter_bili/infrastructure/media_player/media_kit_player.dart';
 import 'package:flutter_bili/infrastructure/media_player/media_player.dart';
-import 'package:flutter_bili/module/setting/model/setting_m.dart';
 import 'package:flutter_bili/module/video/float_video_v.dart';
 import 'package:flutter_bili/module/video/model/playing_info_m.dart';
 import 'package:flutter_bili/route/router.dart';
 import 'package:flutter_bili/service/media_s.dart';
-import 'package:flutter_bili/service/storage_s.dart';
+import 'package:flutter_bili/service/settings_s.dart';
 import 'package:flutter_floating/floating/assist/floating_common_params.dart';
 import 'package:flutter_floating/floating/floating_overlay.dart';
 import 'package:flutter_floating/floating/manager/floating_manager.dart';
@@ -116,22 +115,24 @@ class VideoPageVm extends ChangeNotifier {
   Future<void> initPlayer({Duration? startPosition}) async {
     final playUrl = _playUrl;
     if (playUrl == null) return;
+    final playerKernel = Setting.playerKernel.get();
     final MediaPlayer newPlayer;
-    final setting = StorageS.getSetting();
     try {
-      switch (setting.playerKernel) {
+      switch (playerKernel) {
         case PlayerKernel.mpv:
           newPlayer = await MediaKitPlayer.create(
             playUrl,
             headers: _headers,
             startPosition: startPosition,
           );
+          break;
         case PlayerKernel.mdk:
           newPlayer = await FvpPlayer.create(
             playUrl,
             headers: _headers,
             startPosition: startPosition,
           );
+          break;
       }
       try {
         // 暂停其他播放器

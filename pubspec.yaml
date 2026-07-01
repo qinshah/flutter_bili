@@ -75,7 +75,6 @@ dependencies:
   flutter_floating: ^2.0.2
   flutter_volume_controller: ^2.0.1
   screen_brightness: 2.1.10
-  json_annotation: ^4.12.0
 
 dependency_overrides:
   path_provider: # 应用可用路径.鸿蒙适配
@@ -132,7 +131,6 @@ dev_dependencies:
   build_runner: ^2.13.1
   rename_app: ^1.6.6
   icons_launcher: ^3.0.3
-  json_serializable: 6.14.0
 
 flutter:
   uses-material-design: true

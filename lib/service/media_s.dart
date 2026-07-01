@@ -4,8 +4,7 @@ import 'dart:ui';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter_bili/infrastructure/media_player/media_player.dart';
-import 'package:flutter_bili/module/setting/model/setting_m.dart';
-import 'package:flutter_bili/service/storage_s.dart';
+import 'package:flutter_bili/service/settings_s.dart';
 import 'package:fvp/fvp.dart' as fvp;
 import 'package:media_kit/media_kit.dart';
 
@@ -15,9 +14,9 @@ class MediaS extends BaseAudioHandler with SeekHandler {
 
   static final MediaS i = MediaS._();
 
-  static void initLib([PlayerKernel? playerLibrary]) {
-    playerLibrary ??= StorageS.getSetting().playerKernel;
-    switch (playerLibrary) {
+  static void initPlayerKernel([PlayerKernel? kernel]) {
+    kernel ??= Setting.playerKernel.get();
+    switch (kernel) {
       case PlayerKernel.mpv:
         MediaKit.ensureInitialized();
       case PlayerKernel.mdk:

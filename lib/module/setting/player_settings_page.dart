@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bili/module/video/model/video_quality_m.dart';
 import 'package:flutter_bili/service/media_s.dart';
-
-import '../../service/storage_s.dart';
-import 'model/setting_m.dart';
+import 'package:flutter_bili/service/settings_s.dart';
 
 class PlayerSettingsPage extends StatefulWidget {
   const PlayerSettingsPage({super.key});
@@ -13,26 +10,6 @@ class PlayerSettingsPage extends StatefulWidget {
 }
 
 class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
-  SettingM _settings = SettingM();
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSettings();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loadSettings();
-  }
-
-  void _loadSettings() {
-    setState(() {
-      _settings = StorageS.getSetting();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,20 +23,15 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
           _buildSectionTitle('弹幕'),
           _buildListTile(
             title: '启用弹幕',
-            subtitle: _settings.enableDanmaku ? '开启' : '关闭',
+            subtitle: Setting.enableDanmaku.get() ? '开启' : '关闭',
             onTap: () => _showDanmakuDialog(),
           ),
           _buildDivider(),
           _buildSectionTitle('播放'),
           _buildListTile(
             title: '自动播放',
-            subtitle: _settings.autoPlay ? '开启' : '关闭',
+            subtitle: Setting.autoPlay.get() ? '开启' : '关闭',
             onTap: () => _showAutoPlayDialog(),
-          ),
-          _buildListTile(
-            title: '默认静音',
-            subtitle: _settings.muteByDefault ? '开启' : '关闭',
-            onTap: () => _showMuteDialog(),
           ),
           _buildDivider(),
           _buildSectionTitle('画质'),
@@ -73,9 +45,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
   Widget _buildPlayerLibraryTile() {
     return ListTile(
       title: const Text('播放器内核'),
-      subtitle: Text(
-        _settings.playerKernel.name,
-      ),
+      subtitle: Text(Setting.playerKernel.get().name),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: () => _showPlayerLibraryDialog(),
     );
@@ -84,14 +54,14 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
   Widget _buildVideoQualityTile() {
     return ListTile(
       title: const Text('默认画质'),
-      subtitle: Text(_settings.videoQuality.name),
+      subtitle: Text(Setting.videoQuality.get().name),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: () => _showVideoQualityDialog(),
     );
   }
 
   void _showPlayerLibraryDialog() {
-    PlayerKernel selectedLibrary = _settings.playerKernel;
+    PlayerKernel selectedLibrary = Setting.playerKernel.get();
 
     showDialog(
       context: context,
@@ -121,15 +91,15 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await StorageS.saveSettings(
-                _settings.copyWith(playerKernel: selectedLibrary!),
-              );
-              MediaS.initLib(selectedLibrary);
-              _loadSettings();
+              await Setting.playerKernel.set(selectedLibrary);
+              MediaS.initPlayerKernel(selectedLibrary);
+              setState(() {
+                // 刷新页面
+              });
               if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('播放器内核已更新')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('播放器内核已更新')));
             },
             child: const Text('确定'),
           ),
@@ -139,13 +109,14 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
   }
 
   void _showDanmakuDialog() {
+    final enableDanmaku = Setting.enableDanmaku.get();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('弹幕设置'),
         content: SwitchListTile(
           title: const Text('启用弹幕'),
-          value: _settings.enableDanmaku,
+          value: enableDanmaku,
           onChanged: null,
         ),
         actions: [
@@ -156,14 +127,14 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await StorageS.saveSettings(
-                _settings.copyWith(enableDanmaku: !_settings.enableDanmaku),
-              );
-              _loadSettings();
+              await Setting.enableDanmaku.set(!enableDanmaku);
+              setState(() {
+                // 刷新页面
+              });
               if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('弹幕设置已更新')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('弹幕设置已更新')));
             },
             child: const Text('确定'),
           ),
@@ -173,13 +144,14 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
   }
 
   void _showAutoPlayDialog() {
+    final autoPlay = Setting.autoPlay.get();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('自动播放设置'),
         content: SwitchListTile(
           title: const Text('自动播放'),
-          value: _settings.autoPlay,
+          value: autoPlay,
           onChanged: null,
         ),
         actions: [
@@ -190,48 +162,14 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await StorageS.saveSettings(
-                _settings.copyWith(autoPlay: !_settings.autoPlay),
-              );
-              _loadSettings();
+              await Setting.autoPlay.set(!autoPlay);
+              setState(() {
+                // 刷新页面
+              });
               if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('自动播放设置已更新')),
-              );
-            },
-            child: const Text('确定'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showMuteDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('默认静音设置'),
-        content: SwitchListTile(
-          title: const Text('默认静音'),
-          value: _settings.muteByDefault,
-          onChanged: null,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await StorageS.saveSettings(
-                _settings.copyWith(muteByDefault: !_settings.muteByDefault),
-              );
-              _loadSettings();
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('默认静音设置已更新')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('自动播放设置已更新')));
             },
             child: const Text('确定'),
           ),
@@ -241,7 +179,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
   }
 
   void _showVideoQualityDialog() {
-    var selectedQuality = _settings.videoQuality;
+    var selectedQuality = Setting.videoQuality.get();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -257,7 +195,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
                   groupValue: selectedQuality,
                   onChanged: (value) {
                     if (value == null) return;
-                    setState(() => selectedQuality = value);
+                    selectedQuality = value;
                   },
                 );
               }),
@@ -272,10 +210,10 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await StorageS.saveSettings(
-                _settings.copyWith(videoQuality: selectedQuality),
-              );
-              _loadSettings();
+              await Setting.videoQuality.set(selectedQuality);
+              setState(() {
+                // 刷新页面
+              });
               if (!context.mounted) return;
               ScaffoldMessenger.of(
                 context,

@@ -23,7 +23,7 @@ Future<void> main() async {
     MediaS.i.init(),
     if (OS.isHarmony) OS.initHarmonyDeviceType(),
   ]);
-  MediaS.initLib();
+  MediaS.initPlayerKernel();
   AuthS.i.loadLocalUsers();
 
   runApp(const BiliApp());
