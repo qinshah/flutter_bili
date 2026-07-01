@@ -9,9 +9,9 @@ enum VideoQualityM {
   a480p('480P', 30, 32),
   a360p('360P', 30, 16);
 
-  final String name;
+  final String title;
   final int fps;
   final int qn;
 
-  const VideoQualityM(this.name, this.fps, this.qn);
+  const VideoQualityM(this.title, this.fps, this.qn);
 }

@@ -14,7 +14,7 @@ class QualityButtonV extends StatelessWidget {
       (e) => e.qn == qn,
       orElse: () => VideoQualityM.a1080p30,
     );
-    return videoQuality.qn == qn ? videoQuality.name : qn.toString();
+    return videoQuality.qn == qn ? videoQuality.title : qn.toString();
   }
 
   @override

@@ -54,7 +54,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
   Widget _buildVideoQualityTile() {
     return ListTile(
       title: const Text('默认画质'),
-      subtitle: Text(Setting.videoQuality.get().name),
+      subtitle: Text(Setting.videoQuality.get().title),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: () => _showVideoQualityDialog(),
     );
@@ -190,7 +190,7 @@ class _PlayerSettingsPageState extends State<PlayerSettingsPage> {
               mainAxisSize: MainAxisSize.min,
               children: List.generate(VideoQualityM.values.length, (index) {
                 return RadioListTile<VideoQualityM>(
-                  title: Text(VideoQualityM.values[index].name),
+                  title: Text(VideoQualityM.values[index].title),
                   value: VideoQualityM.values[index],
                   groupValue: selectedQuality,
                   onChanged: (value) {
