@@ -108,17 +108,19 @@ class _DataSettingsPageState extends State<DataSettingsPage> {
             child: const Text('粘贴'),
           ),
           FilledButton(
-            onPressed: () {
+            onPressed: () async {
               try {
-                StorageS.importSettings(cntlr.text);
                 Navigator.pop(context);
+                await StorageS.importSettings(cntlr.text);
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(const SnackBar(content: Text('数据导入成功')));
               } catch (e) {
                 ScaffoldMessenger.of(
                   context,
-                ).showSnackBar(const SnackBar(content: Text('JSON 格式错误')));
+                ).showSnackBar(SnackBar(content: Text('JSON 格式错误：\n$e')));
+                rethrow;
               }
             },
             child: const Text('导入'),

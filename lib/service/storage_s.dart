@@ -23,7 +23,7 @@ abstract final class StorageS {
 
   static Future<void> importSettings(String data) async {
     await settingsB.clear();
-    await settingsB.addAll(jsonDecode(data));
+    await settingsB.putAll(jsonDecode(data));
   }
 
   static Future<void> resetSettings() async => await settingsB.clear();

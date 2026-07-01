@@ -23,6 +23,7 @@ Future<void> main() async {
     MediaS.i.init(),
     if (OS.isHarmony) OS.initHarmonyDeviceType(),
   ]);
+  // if (kDebugMode) await StorageS.resetSettings();
   MediaS.initPlayerKernel();
   AuthS.i.loadLocalUsers();
 
