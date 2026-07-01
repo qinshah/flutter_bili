@@ -289,6 +289,7 @@ class VideoPageVm extends ChangeNotifier {
   }
 
   Future<void> didPushNext(String? next, BuildContext context) async {
+    if (next == null || next == 'fullscreen') return;
     _wasPlaying = _player?.isPlaying ?? false;
     // 下一个页面是视频页就暂停播放，否则浮窗播放
     next == Routes.video
@@ -297,6 +298,7 @@ class VideoPageVm extends ChangeNotifier {
   }
 
   Future<void> onPopNext(String? next) async {
+    if (next == null || next == 'fullscreen') return;
     floatingManager.disposeAllFloating(); // 回到本视频页，不应该再有视频浮窗
     if (_wasPlaying) _play();
   }
